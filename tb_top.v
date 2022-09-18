@@ -153,7 +153,7 @@ end
 integer     i   ;
 integer     j   ;
 initial begin
-    padding = 0             ;
+    padding = 1             ;
     x       = 0-padding     ;
     y       = 0-padding     ;
 
@@ -190,7 +190,7 @@ initial begin
     forever begin
         @(negedge (s_opu_1152_vld & r_opu_1152_rdy))begin
             bit <= bit + 1  ;
-            if(bit == 0)begin
+            if(bit == 7)begin
                 matrix_done <= 1'b1 ;
             end else begin
                 matrix_done <= 1'b0 ;
@@ -276,7 +276,7 @@ initial begin
         cnt = cnt + 1;
     end
 
-    repeat(400) @(posedge sys_clk)  ;
+    repeat(100000) @(posedge sys_clk)  ;
     $stop                           ;
     
 end

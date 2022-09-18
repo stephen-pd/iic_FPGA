@@ -3,7 +3,7 @@
 // Author         : stephenpd stephenpd@163.com
 // CreateDate     : 2022-09-01 16:18:45
 // LastEditors    : stephenpd stephenpd@163.com
-// LastEditTime   : 2022-09-01 17:29:57
+// LastEditTime   : 2022-09-18 19:02:57
 // Description    : 
 //                  
 // 
@@ -29,7 +29,7 @@ module gen_waddr #(
     input   [7 : 0] PIC_SIZE    ,
     input           PADDING     ,
     input   [3 : 0] MODE        ,
-    input           s_cnt_hsync_eq_2line    ,
+    input           WBANK_UPDATE    ,
 
     output  [AW+1:0]WADDR       
     // output TWO_BANK_FULL,
@@ -48,9 +48,9 @@ module gen_waddr #(
         if (!SYS_RST) begin
             r_waddr[AW+1 -: 2]  <= 'b0;
         end else begin
-            if (((r_waddr[AW+1 -: 2] == 2'b10)&s_cnt_hsync_eq_2line) || DATA_SOP) begin//data sop keep next input is bank0 start
+            if (((r_waddr[AW+1 -: 2] == 2'b10)&WBANK_UPDATE) || DATA_SOP) begin//data sop keep next input is bank0 start
                 r_waddr[AW+1 -: 2]  <= 'b0                        ;
-            end else if (s_cnt_hsync_eq_2line ) begin
+            end else if (WBANK_UPDATE ) begin
                 r_waddr[AW+1 -: 2]  <= r_waddr[AW+1 -: 2] + 1'b1    ;
             end
         end
@@ -62,7 +62,7 @@ module gen_waddr #(
         end else begin
             if (DATA_SOP) begin
                 r_waddr[AW-1 :0] <= WRADDR_START + (PADDING ? PIC_SIZE * 8 : 0)   ;//consider padding      
-            end else if ((s_cnt_hsync_eq_2line& !MODE[3])) begin//data sop keep next input is bank0 start at ERADDR_START
+            end else if ((WBANK_UPDATE& !MODE[3])) begin//data sop keep next input is bank0 start at ERADDR_START
                 r_waddr[AW-1 :0] <= WRADDR_START  ;
             end else if (DATA_VLD & WREADY) begin//
                 r_waddr[AW-1 :0] <= r_waddr + 1'b1  ;

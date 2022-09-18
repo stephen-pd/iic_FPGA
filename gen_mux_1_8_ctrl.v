@@ -3,7 +3,7 @@
 // Author         : stephenpd stephenpd@163.com
 // CreateDate     : 2022-09-01 17:32:10
 // LastEditors    : stephenpd stephenpd@163.com
-// LastEditTime   : 2022-09-01 19:13:51
+// LastEditTime   : 2022-09-18 16:33:22
 // Description    : 
 //                  
 // 
@@ -16,9 +16,10 @@
 module gen_mux_1_8_ctrl (
     input   SYS_CLK ,
     input   SYS_RST ,
-    input   TWO_BANK_FULL   ,
-    input   ONE_BANK_FULL   ,
-    input   GEN_RADDR_START ,
+    // input   TWO_BANK_FULL   ,
+    // input   ONE_BANK_FULL   ,
+    input   gen_raddr_i         ,
+    input   gen_raddr_hsync_i   ,
 
     output [2:0]CTRL_BIT_SEL    ,
     output READ_ONE_MATRIX  

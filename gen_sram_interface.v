@@ -13,6 +13,7 @@ module gen_sram_interface #(
     input   [DW-1 :0]   wdata_i         ,
     input               wdata_vld_i     ,
     input   [AW+1: 0]   waddr_i         , 
+    input               rsram2idle_i    ,
   //  input   [7:0]PIC_SIZE        ,
 
     input   [AW+1: 0]   raddr_i         ,
@@ -79,6 +80,7 @@ module gen_sram_interface #(
     wire            raddr_vld       ;
     wire            r2bank_done     ;
     wire            wr2rsram        ;
+    wire            rsram2idle      ;
 
     assign  cnn_mode = mode[0] || mode[1] || mode[2]    ;
     assign  full_connect_mode = mode[3]                 ;
@@ -93,7 +95,8 @@ module gen_sram_interface #(
     assign  raddr           =   raddr_i                 ;
     assign  raddr_vld       =   raddr_vld_i             ;
     assign  r2bank_done     =   r2bank_done_i           ;
-    assign  wr2rsram_i      =   wr2rsram                ;    
+    assign  wr2rsram        =   wr2rsram_i              ;    
+    assign  rsram2idle      =   rsram2idle_i            ;
 
     //===========================================
     // description: output signal preprocess 
@@ -111,6 +114,7 @@ module gen_sram_interface #(
             rdata_vld   <= raddr_vld                    ;
         end
     end
+
 
 
 //===========================================
@@ -144,7 +148,7 @@ always @(*) begin
         end
 
         FSM_RSRAM : begin
-            if (r2bank_done)begin
+            if (rsram2idle)begin
                 fsm_sram_nstate     = FSM_IDLE              ;
             end else begin
                 fsm_sram_nstate     = FSM_RSRAM             ;

@@ -3,7 +3,7 @@
 // Author         : stephenpd stephenpd@163.com
 // CreateDate     : 2022-08-29 18:20:06
 // LastEditors    : stephenpd stephenpd@163.com
-// LastEditTime   : 2022-09-17 16:27:51
+// LastEditTime   : 2022-09-18 22:35:54
 // Description    : 
 //                  
 // 
@@ -47,9 +47,46 @@ module top #(
     output  [3    :0]   SRAM_STATUS
 
 );
+    //===========================================
+    // description: input preprocess
+    wire    [DW-1 : 0]  s_data      ;
+    wire                s_data_vld  ;
+    
+    wire                s_data_hsync    ;
+    wire                s_data_sop      ;
+    wire    [AW-1 : 0]  s_wraddr_start  ;
+    wire                s_opu_1152_rdy  ;
+    wire                s_padding       ;
+    wire                s_sram2reg_vld  ;
+    wire    [7    : 0]  s_pic_size      ;
+    wire    [3    : 0]  s_mode          ;
+
+    assign  s_data      = DATA          ;
+    assign  s_data_vld  = DATA_VLD      ;
+    assign  s_data_hsync= DATA_HSYNC    ;
+    assign  s_data_sop  = DATA_SOP      ;
+    assign  s_wraddr_start  = WRADDR_START  ;
+    assign  s_opu_1152_rdy  = OPU_1152_RDY  ;
+    assign  s_padding       = PADDING       ;
+    assign  s_sram2reg_vld  = SRAM2REG_VLD  ;
+    assign  s_pic_size      = PIC_SIZE      ;
+    assign  s_mode          = MODE          ;
+
+
+    //===========================================
+    // description: output preprocess
+    reg             r_opu_1152_vld  ;
+
+    reg             r_wready        ;//sram ready for write
+    reg             r_sram2reg_rdy  ;//sram ready for pass to reg_array
+
+    assign WREADY       = r_wready  ;
+    assign SRAM2REG_RDY = r_sram2reg_rdy  ;
+    assign OPU_1152_VLD = r_opu_1152_vld  ;  
+        
+    
     
     reg [1151 : 0]reg_array[7:0]    ;//reg array
-
     reg [7    : 0]r_cnt_hsync       ;//count data_hsync
 
   //  reg [AW+1 : 0]r_waddr           ;
@@ -57,22 +94,21 @@ module top #(
     wire [AW+1 :0]s_raddr           ;//read from sram
    // reg           r_raddr_vld       ;
    // reg           r_raddr_rst       ;//rst register
+   wire           s_rec_rdata       ;
+   wire             s_ctrl_regbit_sel   ; 
 
-    reg             r_wready        ;//sram ready for write
+    
     wire            s_wready_up     ;
     wire            s_wready_dw     ;//for wready
     wire            s_r2bank_done   ;//read 2 bank to reg_array
 
-    reg             r_sram2reg_rdy  ;//sram ready for pass to reg_array
+    
     reg  [1:0]      r_sram2reg_rdy_temp ;
     wire            s_sram2reg_rdy_up   ;
     wire            s_sram2reg_rdy_dw   ;
 //    wire            s_w1bank_full   ;//write 1 bank full 
 
-    wire s_cnt_hsync_eq_2line       ;
-    wire s_two_bank_full            ;//cnt_hsync == 3
-    wire s_one_bank_full            ;//cnt_hsync > 3 & cnt_hsync==2line
-    wire s_cnt_hsync_eq_N           ;//cnt_hsync == N + padding
+    
 
     wire s_cnt_raddr_rec_eqsend     ;//reg array receive 9/3 data
     wire [3:0]s_num_raddr           ;//eq 9/3
@@ -94,40 +130,50 @@ module top #(
 
     wire        s_rdata_vld         ;
     wire [3:0]  s_sram_status       ;
+    wire        s_reg_array_empty   ;
 
     assign SRAM_STATUS = s_sram_status  ;
     
 
 
-    assign WREADY = r_wready        ;
-    assign SRAM2REG_RDY = r_sram2reg_rdy  ;
+   
+// //======================================================================================
+// description: now is for generate ready signal, one for sram2reg ,one for data write to sram
+// //======================================================================================
+    
     //===========================================
     // description: count hsync signal
+    wire s_cnt_hsync_eq_2line       ;
+    wire s_two_bank_full            ;//cnt_hsync == 3
+    wire s_one_bank_full            ;//cnt_hsync > 3 & cnt_hsync==2line
+    wire s_cnt_hsync_eq_N           ;//cnt_hsync == N + padding
+
     always @(posedge SYS_CLK or negedge SYS_RST) begin//count hsync data to sram, include the padding situation 
         if (!SYS_RST) begin
             r_cnt_hsync <= 'b0;
         end else begin
-            if (DATA_SOP)        r_cnt_hsync <= {6'b0 , PADDING}    ;
-            else if (DATA_HSYNC) r_cnt_hsync <= r_cnt_hsync + 1'b1  ;
+            if (s_data_sop)        r_cnt_hsync <= {7'b0 , s_padding}    ;
+            else if (s_data_hsync) r_cnt_hsync <= r_cnt_hsync + 1'b1  ;
         end
     end
-    assign s_cnt_hsync_eq_2line = r_cnt_hsync[0] & DATA_HSYNC       ;//bank write change 
-    
-    assign s_two_bank_full = (r_cnt_hsync == 3) & DATA_HSYNC          ;
-    assign s_one_bank_full = (r_cnt_hsync > 3) & s_cnt_hsync_eq_2line ;
 
-    assign s_cnt_hsync_eq_N = (r_cnt_hsync == PIC_SIZE -1 + PADDING)  ;
+    assign s_cnt_hsync_eq_2line = r_cnt_hsync[0] & s_data_hsync       ;//bank write change 
+    
+    assign s_two_bank_full = (r_cnt_hsync == 8'd3) & s_data_hsync          ;
+    assign s_one_bank_full = (r_cnt_hsync > 8'd3) & s_cnt_hsync_eq_2line ;
+
+    assign s_cnt_hsync_eq_N = (r_cnt_hsync == s_pic_size -1 + s_padding) & s_data_hsync  ;
 
 
     //===========================================
     // description: wready signal
     //******(write bank 0 1 )**** **********(write bank 2)***********           *******(write bank 1)********
     //                            ************(read bank 0 1 to register)****** ********(read bank 2 to register)*****
-    assign  s_wready_up =   &r_sram2reg_rdy_temp  ;
+    assign  s_wready_up =   (&r_sram2reg_rdy_temp) || (s_data_sop)  ;
     assign  s_wready_dw =   s_one_bank_full ;//one_bank_full is write 2 line to sram ok
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
-            r_wready    <= 1'b1 ; 
+            r_wready    <= 1'b0 ; 
         end else begin
             if (s_wready_up) begin
                 r_wready    <= 1'b1 ;
@@ -140,8 +186,11 @@ module top #(
 
     //===========================================
     // description: ram2reg_rdy signal
-    assign s_sram2reg_rdy_up    = &r_sram2reg_rdy_temp                      ;
-    assign s_sram2reg_rdy_dw    = SRAM2REG_VLD & SRAM2REG_RDY               ;
+    reg [7 : 0]r_cnt_r2bank_done    ;
+    wire       s_rbank2idle         ;   
+
+    assign s_sram2reg_rdy_up    = (s_sram_status==4'b1000) ? (&r_sram2reg_rdy_temp) : (s_r2bank_done&(r_cnt_r2bank_done < ((s_pic_size>>1)+s_padding-1'b1-1'b1)))  ;                    
+    assign s_sram2reg_rdy_dw    = s_sram2reg_vld & SRAM2REG_RDY               ;
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
             r_sram2reg_rdy_temp = 'b0   ;
@@ -161,172 +210,227 @@ module top #(
         end
     end
 
-
-
-
+// //======================================================================================
+// description: now is for generate waddr to sram
+// //======================================================================================
 
     gen_waddr U_gen_waddr (
         .SYS_CLK            (SYS_CLK    ),
         .SYS_RST            (SYS_RST    ),
-    //    .DATA               (),
-        .DATA_SOP           (DATA_SOP   ),
-    //    .DATA_HSYNC         (DATA_HSYNC ),
-        .DATA_VLD           (DATA_VLD   ),
+        .DATA_SOP           (s_data_sop   ),
+        .DATA_VLD           (s_data_vld   ),
         .WREADY             (r_wready   ),
-        .WRADDR_START       (WRADDR_START),
+        .WRADDR_START       (s_wraddr_start),
 
-        .PIC_SIZE           (PIC_SIZE   ),
-        .PADDING            (PADDING    ),
-        .MODE               (MODE       ),
-        .s_cnt_hsync_eq_2line(s_cnt_hsync_eq_2line),
+        .PIC_SIZE           (s_pic_size   ),
+        .PADDING            (s_padding    ),
+        .MODE               (s_mode       ),
+        .WBANK_UPDATE       (s_cnt_hsync_eq_2line),//write bank change
         
-        .WADDR              (s_waddr    )//
-        // .TWO_BANK_FULL      (),
-        // .ONE_BANK_FULL      ()    
+        .WADDR              (s_waddr    )   
     );
-
+// //======================================================================================
+// description: now is for generate raddr to read from sram
+// //======================================================================================
 
     gen_raddr U_gen_raddr (
         .SYS_CLK            (SYS_CLK    ),
         .SYS_RST            (SYS_RST    ),
-        .gen_raddr_hsync_i      (SRAM2REG_VLD),
-        .gen_raddr_sop_i      (s_two_bank_full),
+        .gen_raddr_hsync_i  (s_sram2reg_vld),
+        .gen_raddr_sop_i    (s_two_bank_full),
+        .rec_rdata_i          (s_rec_rdata),
 
-        .mode_i               (MODE),////[0]three direction mode ,[1]line mode stride=1 , [2]line mode stride=2 , [3]full-connected 
-        .gen_raddr_i    (s_gen_addr),
+        .mode_i             (s_mode),////[0]three direction mode ,[1]line mode stride=1 , [2]line mode stride=2 , [3]full-connected 
         .DATA_EOP           (DATA_EOP),
-        .rec_rdata_matrix_i    (s_read_one_matrix),
-        .pic_size_i           (PIC_SIZE),
+        .pic_size_i         (s_pic_size),
         .WADDR              (s_waddr),
-        .padding_i            (PADDING),
-        .gen_raddr_bit_i       (s_ctrl_bit_sel),
-        .wraddr_start_i       (WRADDR_START),
+        .padding_i          (s_padding),
+      //  .gen_raddr_bit_i    (s_ctrl_bit_sel),
+        .wraddr_start_i     (s_wraddr_start),
 
-        .s_reg_array_full   (s_reg_array_full),
+        .reg_array_full_i   (s_reg_array_full),
 
-        .raddr_o              (s_raddr),
-        .raddr_vld_o          (s_raddr_vld),
-        .reg_rst_o            (s_raddr_rst),
-        .NUM_RADDR          (s_num_raddr ),
+        .raddr_o            (s_raddr),
+        .raddr_vld_o        (s_raddr_vld),
+        .reg_rst_o          (s_raddr_rst),
+        .num_rdata_o        (s_num_raddr ),
         
-        .ctrl_regnum_sel_o    (s_ctrl_regnum_sel),//gen_mux_1_9_ctrl 
-        .r2bank_done_o        (s_r2bank_done)
+        .ctrl_regnum_sel_o  (s_ctrl_regnum_sel),//gen_mux_1_9_ctrl 
+        .ctrl_regbit_sel_o  (s_ctrl_regbit_sel),
+        .r2bank_done_o      (s_r2bank_done)
 
     );
 
-
-
-    gen_mux_1_8_ctrl U_gen_mux_1_8ctrl (
-        .SYS_CLK        (SYS_CLK)  ,
-        .SYS_RST        (SYS_RST)  ,
-        .TWO_BANK_FULL  (s_two_bank_full) ,
-        .ONE_BANK_FULL  (SRAM2REG_VLD),
-        .GEN_RADDR_START(s_gen_addr),
-
-        .CTRL_BIT_SEL   (s_ctrl_bit_sel)  ,
-        .READ_ONE_MATRIX(s_read_one_matrix)  //read one matrix of 0-7bit to reg_array
-
-    );
-
+//======================================================================================
+// description: now is for sram in or out
+// //======================================================================================
+    
+    always @(posedge SYS_CLK or negedge SYS_RST) begin//generate signal for sram state from read sram to idle sram
+        if (!SYS_RST)begin
+            r_cnt_r2bank_done   <= 'b0  ;
+        end else begin
+            if (s_data_sop)begin
+                r_cnt_r2bank_done   <= 'b0  ;
+            end else if(s_r2bank_done)begin
+                r_cnt_r2bank_done   <= r_cnt_r2bank_done + 1'b1     ;
+            end
+        end
+    end
+    assign s_rbank2idle  = ((r_cnt_r2bank_done == ((s_pic_size>>1)+s_padding-1'b1-1'b1)) ? 1'b1 : 1'b0 )&s_r2bank_done  ;
+    
     gen_sram_interface U_gen_sram_interface (
         .SYS_CLK        (SYS_CLK),
         .SYS_RST        (SYS_RST),
-        .mode_i           (MODE),
+        .mode_i           (s_mode),
         .r2wrsram_i  (s_two_bank_full),
-        .wrsram_bank_change_i  (SRAM2REG_VLD),
-        .data_sop_i       (DATA_SOP),
+        .wrsram_bank_change_i  (s_sram2reg_vld),
+        .data_sop_i       (s_data_sop),
         .DATA_EOP       (DATA_EOP),
-        .wdata_i           (DATA),
-        .wdata_vld_i       (DATA_VLD),
+        .wdata_i           (s_data),
+        .wdata_vld_i       (s_data_vld),
   //      .PIC_SIZE       (PIC_SIZE),
 
         .raddr_i          (s_raddr),
         .raddr_vld_i      (s_raddr_vld),
         .waddr_i          (s_waddr), 
         .r2bank_done_i    (s_r2bank_done),
-        .wr2rsram_i(s_cnt_hsync_eq_N),
-        .wsram_2line(s_cnt_hsync_eq_2line),
+        .wr2rsram_i       (s_cnt_hsync_eq_N),
+        .wsram_2line      (s_cnt_hsync_eq_2line),
+        .rsram2idle_i     (s_rbank2idle),
 
         .rdata_o              (s_rdata),
         .rdata_vld_o      (s_rdata_vld),
         .sram_status_o   (s_sram_status)
     );
 
-    // sram_sim U_sram0_sim (
-    //     .clk    (),
-    //     .addr   (),
-    //     .din    (),
-    //     .ce     (),
-    //     .we     (),
-    //     .dout   ()
-    // );
+//======================================================================================
+// description: now is for register fifo in or out
+// //======================================================================================
+//===========================================
+// description: reg array fifo ctrl
 
-    // sram_sim U_sram1_sim (
-    //     .clk    (),
-    //     .addr   (),
-    //     .din    (),
-    //     .ce     (),
-    //     .we     (),
-    //     .dout   ()
-    // );
-
-    // sram_sim U_sram2_sim (
-    //     .clk    (),
-    //     .addr   (),
-    //     .din    (),
-    //     .ce     (),
-    //     .we     (),
-    //     .dout   ()
-    // );
-
-    // mux_1_9 U_mux_1_9 (
-    //     .
-    // );
-
-    // mux_1_8 U_mux_1_8 (
-
-    // );
-    reg_array_fifo U_reg_array_fifo (
+    reg_array_fifo_ctrl U_reg_array_fifo_ctrl (
         .SYS_CLK        (SYS_CLK),
         .SYS_RST        (SYS_RST),
 
-        .RDATA          (s_rdata),
-        .CTRL_BIT_SEL   (s_ctrl_bit_sel),
-        .CTRL_REGNUM_SEL(s_ctrl_regnum_sel),//for data to reg_array
         .RDATA_VLD      (s_rdata_vld),
-        .REG_RST        (s_raddr_rst),
-        .NUM_RADDR      (s_num_raddr),
-        .MODE           (MODE       ),
+        .num_rdata_i    (s_num_raddr),
 
-        .OPU_1152_RDY   (OPU_1152_RDY),//input for opu compute ok
+        .OPU_1152_RDY   (s_opu_1152_rdy),//input for opu compute ok
 
-        .OPU_1152       (OPU_1152   ),
-        .s_cnt_raddr_rec_eqsend_with_vld(s_cnt_raddr_rec_eqsend),
-        .OPU_1152_VLD   (OPU_1152_VLD),
-        .OPU_BIT_SEL    (opu_bit_sel),
-        .PIC_SIZE       (PIC_SIZE   ),
-        .ONE_BANK_FULL      (SRAM2REG_VLD),
+        .rec_rdata      (s_rec_rdata),
 
-        .CTRL_MUX_1152_1(CTRL_MUX_1152_1),//11bit to sel in 1152
-        .REG_ARRAY_ROW  (REG_ARRAY_ROW),//8bit sel from reg_array
-        .reg_array_full_o(s_reg_array_full)
+        .reg_array_full (s_reg_array_full),
+        .reg_array_empty(s_reg_array_empty)
     );
 
-    reg   r_gen_raddr_temp    ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_RST) begin//when opu rdy up ,opu vld down immidaitely
         if (!SYS_RST)begin
-            r_gen_raddr_temp    <= 'b0  ;
+            r_opu_1152_vld  <= 'b0  ;
         end else begin
-            if (s_cnt_raddr_rec_eqsend) begin
-                r_gen_raddr_temp    <= 1'b1     ;
-            end else if (r_gen_raddr_temp & (~s_reg_array_full))begin
-                r_gen_raddr_temp    <= 'b0      ;
+            if (r_opu_1152_vld & s_opu_1152_rdy)begin
+                r_opu_1152_vld <= 'b0   ;
+            end else if(~s_reg_array_empty)begin
+                r_opu_1152_vld <= 1'b1  ;
             end
         end
     end
-    assign s_gen_addr = r_gen_raddr_temp & (~s_reg_array_full)   ;
+//===========================================
+// description: sram readout data to reg_array
+    
+      always @(posedge SYS_CLK or negedge SYS_RST) begin//write data to fifo 
+        if (!SYS_RST) begin
+            reg_array[0]    <= 'b0  ;
+            reg_array[1]    <= 'b0  ;
+            reg_array[2]    <= 'b0  ;
+            reg_array[3]    <= 'b0  ;
+            reg_array[4]    <= 'b0  ;
+            reg_array[5]    <= 'b0  ;
+            reg_array[6]    <= 'b0  ;
+            reg_array[7]    <= 'b0  ;
+        end else begin
+            if (s_rdata_vld & (~s_reg_array_full) & s_raddr_rst) begin//rst reg first ,and then data to reg
+                reg_array[s_ctrl_regbit_sel][(9-s_ctrl_regbit_sel)*DW - 1 -:DW] <= 'b0    ;
+            end else if (s_rdata_vld & (~s_reg_array_full) & (~s_raddr_rst)) begin
+                reg_array[s_ctrl_regbit_sel][(9-s_ctrl_regbit_sel)*DW - 1 -:DW] <= s_rdata  ;
+            end
+        end
+        
+    end
 
-   
+//===========================================
+// description: count the number of opu_vld&opu_rdy, for mux out ctrl
+    reg     [2      :0] r_reg2opu_ctrl_bit      ;
+    wire                s_reg2opu_ctrl_bit_eq7  ;
+
+    wire    [DW*9-1 :0] s_reg_array_bit         ;
+  //  wire    [DW*9-1 :0] OPU_1152                ;
+   // reg     [DW*9-1 :0] reg_array[7:0]          ;//reg_array
+
+
+    always @(posedge SYS_CLK or negedge SYS_RST) begin
+        if (!SYS_RST) begin
+            r_reg2opu_ctrl_bit  <= 'b0  ;
+        end else begin
+            if (s_opu_1152_rdy & r_opu_1152_vld) begin
+                r_reg2opu_ctrl_bit  <= r_reg2opu_ctrl_bit + 1   ;
+            end
+        end
+    end
+    assign s_reg2opu_ctrl_bit_eq7 = s_opu_1152_rdy & r_opu_1152_vld & (r_reg2opu_ctrl_bit == 7) ;
+
+
+//===========================================
+// description: reg_array to opu ,mux 6 sel 1 & mux_ctrl
+
+    mux_ctrl_6_1 U_mux_ctrl_6_1 (
+        .SYS_CLK        (SYS_CLK),
+        .SYS_RST        (SYS_RST),
+        .mode_i         (s_mode)   ,
+        .ctrl_update_i  (s_reg2opu_ctrl_bit_eq7),
+
+        .ctrl_mux_6_1   (r_ctrl_mux_6_1)
+    );
+
+    mux_6_1 U_mux_6_1 (
+        .CTRL_MUX_6_1       (r_ctrl_mux_6_1         ),
+        .REG_ARRAY_1152     (s_reg_array_bit        ),
+
+        .MUX2OPU_0          (OPU_1152[DW*9-1 -:DW]  ),
+        .MUX2OPU_1          (OPU_1152[DW*8-1 -:DW]  ),
+        .MUX2OPU_2          (OPU_1152[DW*7-1 -:DW]  ),
+        .MUX2OPU_3          (OPU_1152[DW*6-1 -:DW]  ),
+        .MUX2OPU_4          (OPU_1152[DW*5-1 -:DW]  ),
+        .MUX2OPU_5          (OPU_1152[DW*4-1 -:DW]  ),
+        .MUX2OPU_6          (OPU_1152[DW*3-1 -:DW]  ),
+        .MUX2OPU_7          (OPU_1152[DW*2-1 -:DW]  ),
+        .MUX2OPU_8          (OPU_1152[DW*1-1 -:DW]  )
+    );
+//===========================================
+    // description: reg_array to opu ,mux 8 sel 1
+
+    mux_8_1 U_mux_8_1 (
+        .REG_ARRAY_BIT0     ( reg_array[0]   ),
+        .REG_ARRAY_BIT1     ( reg_array[1]   ),
+        .REG_ARRAY_BIT2     ( reg_array[2]   ),
+        .REG_ARRAY_BIT3     ( reg_array[3]   ),
+        .REG_ARRAY_BIT4     ( reg_array[4]   ),
+        .REG_ARRAY_BIT5     ( reg_array[5]   ),
+        .REG_ARRAY_BIT6     ( reg_array[6]   ),
+        .REG_ARRAY_BIT7     ( reg_array[7]   ),
+
+        .CTRL_MUX_8_1       (r_reg2opu_ctrl_bit ),
+
+        .REG_ARRAY_1152     (s_reg_array_bit    )
+    );
+
+//===========================================
+// description: mux_1152_1 for weight check
+    assign REG_ARRAY_ROW = (CTRL_MUX_1152_1 < DW*9 ) ? {reg_array[7][CTRL_MUX_1152_1] , reg_array[6][CTRL_MUX_1152_1] ,reg_array[5][CTRL_MUX_1152_1] 
+                                                       ,reg_array[4][CTRL_MUX_1152_1] , reg_array[3][CTRL_MUX_1152_1] ,reg_array[2][CTRL_MUX_1152_1]
+                                                       ,reg_array[1][CTRL_MUX_1152_1] , reg_array[0][CTRL_MUX_1152_1] } : 'b0   ;
+
+  
     
     
 endmodule
