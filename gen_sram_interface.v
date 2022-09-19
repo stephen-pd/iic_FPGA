@@ -196,7 +196,7 @@ always @(posedge SYS_CLK or negedge SYS_RST ) begin
         end else if (full_connect_mode & DATA_EOP) begin//start read in full_connet
             CEN <= 3'b001   ;
             WEN <= 3'b000   ;//start read bank 0
-        end else if ((fsm_sram_cstate == FSM_WSRAM)&wsram_2line || (fsm_sram_cstate == FSM_WRSRAM)&wrsram_bank_change ) begin
+        end else if ((fsm_sram_cstate == FSM_WSRAM)&wsram_2line || (fsm_sram_cstate == FSM_WRSRAM)&wrsram_bank_change || (fsm_sram_cstate==FSM_RSRAM)&r2bank_done ) begin
             CEN <= {CEN[1] ,CEN[0] ,CEN[2]} ;
             WEN <= {WEN[1] ,WEN[0] ,WEN[2]} ;
         end else if (fsm_sram_cstate == FSM_IDLE) begin

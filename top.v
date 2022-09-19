@@ -3,7 +3,7 @@
 // Author         : stephenpd stephenpd@163.com
 // CreateDate     : 2022-08-29 18:20:06
 // LastEditors    : stephenpd stephenpd@163.com
-// LastEditTime   : 2022-09-18 22:35:54
+// LastEditTime   : 2022-09-19 23:30:38
 // Description    : 
 //                  
 // 
@@ -13,6 +13,7 @@
 //                  
 // 
 // -FHEADER ==================================================
+`define sim_top 1
 
 module top #(
     parameter   AW  = 10,
@@ -95,7 +96,7 @@ module top #(
    // reg           r_raddr_vld       ;
    // reg           r_raddr_rst       ;//rst register
    wire           s_rec_rdata       ;
-   wire             s_ctrl_regbit_sel   ; 
+   wire  [2    :0]s_ctrl_regbit_sel   ; 
 
     
     wire            s_wready_up     ;
@@ -169,8 +170,8 @@ module top #(
     // description: wready signal
     //******(write bank 0 1 )**** **********(write bank 2)***********           *******(write bank 1)********
     //                            ************(read bank 0 1 to register)****** ********(read bank 2 to register)*****
-    assign  s_wready_up =   (&r_sram2reg_rdy_temp) || (s_data_sop)  ;
-    assign  s_wready_dw =   s_one_bank_full ;//one_bank_full is write 2 line to sram ok
+    assign  s_wready_up =   ((&r_sram2reg_rdy_temp)&s_reg_array_empty) || (s_data_sop)  ;//add condition s_reg_array_empty for in the same with wen change
+    assign  s_wready_dw =   s_one_bank_full || s_cnt_hsync_eq_N ;//one_bank_full is write 2 line to sram ok,add cnt_hsync_eq_N, for when input over,wready down
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
             r_wready    <= 1'b0 ; 
@@ -189,13 +190,13 @@ module top #(
     reg [7 : 0]r_cnt_r2bank_done    ;
     wire       s_rbank2idle         ;   
 
-    assign s_sram2reg_rdy_up    = (s_sram_status==4'b1000) ? (&r_sram2reg_rdy_temp) : (s_r2bank_done&(r_cnt_r2bank_done < ((s_pic_size>>1)+s_padding-1'b1-1'b1)))  ;                    
+    assign s_sram2reg_rdy_up    = (s_sram_status==4'b1000) ? ((&r_sram2reg_rdy_temp)&s_reg_array_empty) : (s_reg_array_empty&(r_sram2reg_rdy_temp[1]&(r_cnt_r2bank_done < ((s_pic_size>>1)+s_padding-1'b1))))  ;//add the condition of reg array is empty              
     assign s_sram2reg_rdy_dw    = s_sram2reg_vld & SRAM2REG_RDY               ;
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
             r_sram2reg_rdy_temp = 'b0   ;
         end else begin
-            if (r_sram2reg_rdy_temp==2'b11)  r_sram2reg_rdy_temp    = 0  ;//down immediately
+            if (s_sram2reg_rdy_up)  r_sram2reg_rdy_temp    = 0  ;//down immediately
             if (s_one_bank_full)    r_sram2reg_rdy_temp[0] = 1  ;
             if (s_r2bank_done)      r_sram2reg_rdy_temp[1] = 1  ;
         end
@@ -306,8 +307,25 @@ module top #(
 //======================================================================================
 // description: now is for register fifo in or out
 // //======================================================================================
+    //delay one clock for 
+
 //===========================================
-// description: reg array fifo ctrl
+// description: reg array fifo s_ctrl_regnum_sel ,s_raddr_rst
+    wire [3:0]s_ctrl_regnum_sel_d1   ;
+    wire s_rdata_rst            ;
+    reg  [3:0]r_ctrl_regnum_sel_d1   ;
+    reg  r_rdata_rst            ;
+    assign s_ctrl_regnum_sel_d1 = r_ctrl_regnum_sel_d1  ;
+    assign s_rdata_rst          = r_rdata_rst           ;
+    always @(posedge SYS_CLK or negedge SYS_RST) begin
+        if (!SYS_RST) begin
+            r_ctrl_regnum_sel_d1    <= 'b0  ;
+            r_rdata_rst             <= 'b0  ;
+        end else begin
+            r_ctrl_regnum_sel_d1    <= s_ctrl_regnum_sel    ;
+            r_rdata_rst             <= s_raddr_rst          ;
+        end
+    end
 
     reg_array_fifo_ctrl U_reg_array_fifo_ctrl (
         .SYS_CLK        (SYS_CLK),
@@ -349,10 +367,12 @@ module top #(
             reg_array[6]    <= 'b0  ;
             reg_array[7]    <= 'b0  ;
         end else begin
-            if (s_rdata_vld & (~s_reg_array_full) & s_raddr_rst) begin//rst reg first ,and then data to reg
-                reg_array[s_ctrl_regbit_sel][(9-s_ctrl_regbit_sel)*DW - 1 -:DW] <= 'b0    ;
-            end else if (s_rdata_vld & (~s_reg_array_full) & (~s_raddr_rst)) begin
-                reg_array[s_ctrl_regbit_sel][(9-s_ctrl_regbit_sel)*DW - 1 -:DW] <= s_rdata  ;
+            if (s_rdata_vld & (~s_reg_array_full) & s_rdata_rst) begin//rst reg first ,and then data to reg
+                reg_array[s_ctrl_regbit_sel][(4'd9-s_ctrl_regnum_sel_d1)*DW - 1 -:DW] <= 'b0    ;
+           //     $display("RST is put to reg%d bit%d" ,s_ctrl_regnum_sel_d1,s_ctrl_regbit_sel);
+            end else if (s_rdata_vld & (~s_reg_array_full) & (~s_rdata_rst)) begin
+                reg_array[s_ctrl_regbit_sel][(4'd9-s_ctrl_regnum_sel_d1)*DW - 1 -:DW] <= s_rdata  ;
+           //     $display("%d is put to reg%d bit%d",s_rdata[0] ,s_ctrl_regnum_sel_d1,s_ctrl_regbit_sel);
             end
         end
         
@@ -382,18 +402,20 @@ module top #(
 
 //===========================================
 // description: reg_array to opu ,mux 6 sel 1 & mux_ctrl
+    wire  [2:0]   s_ctrl_mux_6_1  ;
 
     mux_ctrl_6_1 U_mux_ctrl_6_1 (
         .SYS_CLK        (SYS_CLK),
         .SYS_RST        (SYS_RST),
         .mode_i         (s_mode)   ,
         .ctrl_update_i  (s_reg2opu_ctrl_bit_eq7),
+        .ctrl_reset_i   (s_sram2reg_rdy_dw),//when update line ,ctrl mux6_1 should be reset
 
-        .ctrl_mux_6_1   (r_ctrl_mux_6_1)
+        .ctrl_mux_6_1   (s_ctrl_mux_6_1)
     );
 
     mux_6_1 U_mux_6_1 (
-        .CTRL_MUX_6_1       (r_ctrl_mux_6_1         ),
+        .CTRL_MUX_6_1       (s_ctrl_mux_6_1         ),
         .REG_ARRAY_1152     (s_reg_array_bit        ),
 
         .MUX2OPU_0          (OPU_1152[DW*9-1 -:DW]  ),
@@ -408,7 +430,26 @@ module top #(
     );
 //===========================================
     // description: reg_array to opu ,mux 8 sel 1
+`ifdef sim_top
+    wire  [DW*9-1 :0] reg_array0     ;
+    wire  [DW*9-1 :0] reg_array1     ; 
+    wire  [DW*9-1 :0] reg_array2     ; 
+    wire  [DW*9-1 :0] reg_array3     ;  
+    wire  [DW*9-1 :0] reg_array4     ; 
+    wire  [DW*9-1 :0] reg_array5     ; 
+    wire  [DW*9-1 :0] reg_array6     ; 
+    wire  [DW*9-1 :0] reg_array7     ; 
 
+    assign reg_array0 = reg_array[0]    ;
+    assign reg_array1 = reg_array[1]    ;
+    assign reg_array2 = reg_array[2]    ;
+    assign reg_array3 = reg_array[3]    ;
+    assign reg_array4 = reg_array[4]    ;
+    assign reg_array5 = reg_array[5]    ;
+    assign reg_array6 = reg_array[6]    ;
+    assign reg_array7 = reg_array[7]    ;
+    
+`endif 
     mux_8_1 U_mux_8_1 (
         .REG_ARRAY_BIT0     ( reg_array[0]   ),
         .REG_ARRAY_BIT1     ( reg_array[1]   ),

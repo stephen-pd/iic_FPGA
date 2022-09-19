@@ -3,7 +3,7 @@
 // Author         : stephenpd stephenpd@163.com
 // CreateDate     : 2022-08-30 10:39:36
 // LastEditors    : stephenpd stephenpd@163.com
-// LastEditTime   : 2022-09-18 20:12:28
+// LastEditTime   : 2022-09-20 01:55:06
 // Description    : 
 //                  
 // 
@@ -13,7 +13,7 @@
 //                  
 // 
 // -FHEADER ==================================================
-`define sim_gen_raddr 1
+//`define sim_gen_raddr 1
 module gen_raddr #(
     parameter AW = 10    
 ) (
@@ -158,7 +158,7 @@ module gen_raddr #(
     //wire [3:0] num_rdata_o  ;
     
     assign r2bank_done_o  = (fsm_rsram_cstate == FSM_DONE_CNN) ;
-    assign raddr_vld_o  = r_raddr_vld_d1                     ;
+    assign raddr_vld_o  = r_raddr_vld_d2                     ;//see the design.doc
     assign reg_rst_o    = r_reg_rst                          ;
     assign raddr_o      = raddr                              ;
     assign ctrl_regnum_sel_o  = r_lut_out_d1                 ;
@@ -296,8 +296,8 @@ module gen_raddr #(
             end
         end
     end
-    assign s_cnt_matrix_eqN  = s_rec_matrix & (r_cnt_matrix == (pic_size-2'd2) - 1'b1)     ;
-    assign s_cnt_matrix_eq2N = s_rec_matrix & (r_cnt_matrix == 2'd2*(pic_size-2'd2) - 1'b1)   ;//when pic_size = 8, four line need read 2*(8-2) matrix
+    assign s_cnt_matrix_eqN  = s_rec_matrix & (r_cnt_matrix == (pic_size-2'd2 + padding + padding) - 1'b1)     ;
+    assign s_cnt_matrix_eq2N = s_rec_matrix & (r_cnt_matrix == 2'd2*(pic_size-2'd2 + padding + padding) - 1'b1)   ;//when pic_size = 8, four line need read 2*(8-2) matrix
 
     //===========================================
     // description: PIC_X ,PIC_Y 
@@ -321,8 +321,8 @@ module gen_raddr #(
         end else begin
             if (mode[0])begin
                 if (gen_raddr_sop || gen_raddr_hsync)begin
-                    pic_x_temp <= 2'b01             ;
-                    pic_y_temp <=  'b0              ;
+                    pic_x_temp <= 2'b01                     ;
+                    pic_y_temp <= 8'b0 - padding-padding    ;//padding should be considered in pic_y , initial eq -2
                 end else if (s_rec_matrix)begin
                     pic_x_temp <= pic_x_temp + 1'b1 ;
                     pic_y_temp <= pic_y_temp + 1'b1 ;
@@ -331,7 +331,7 @@ module gen_raddr #(
             end else if(mode[1])begin
                 if (gen_raddr_sop || gen_raddr_hsync)begin
                     pic_x_temp <=  'b0              ;
-                    pic_y_temp <=  'b0              ;
+                    pic_y_temp <=  'b0 - padding             ;
                 end else if(s_cnt_matrix_eqN)begin
                     pic_x_temp <= pic_x_temp + 2'b10 ;
                 end else if (s_rec_matrix)begin
@@ -341,7 +341,7 @@ module gen_raddr #(
             end else if(mode[2])begin
                 if (gen_raddr_sop || gen_raddr_hsync)begin
                     pic_x_temp <=  'b0              ;
-                    pic_y_temp <=  'b0              ;
+                    pic_y_temp <=  'b0 - padding             ;
                 end else if (s_rec_matrix)begin
                     pic_y_temp <= pic_y_temp + 2'b10 ;
                 end 
@@ -380,7 +380,7 @@ module gen_raddr #(
     assign s_y_offset = pic_y + r_y_offset      ;
 
     assign s_pic_x_specific = s_x_offset + r_cnt_gen_raddr_hsync*2 - padding  ;
-    assign s_pic_y_specific = s_y_offset - padding  ;
+    assign s_pic_y_specific = s_y_offset   ;
             
 //===========================================
 // description: fsm state for gen_addr request and resopnse
@@ -436,7 +436,7 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
                     
 
             FSM_WAIT_ADDR   :
-                if ((r_cnt_matrix == 2*(pic_size-2))) begin//reg array receive one line state
+                if ((r_cnt_matrix == 2*(pic_size-2+padding+padding))) begin//reg array receive one line state
                     fsm_nstate_addr = FSM_IDLE_ADDR ;
                 end else if(~reg_array_full) begin
                     fsm_nstate_addr = FSM_REQ_ADDR  ;
@@ -526,6 +526,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
     assign sim_raddr[11:10] = (s_cfsm_full_connect_cnn & r_raddr_vld_d1) ? 'b0 : (s_x_offset[1] + r_bank_status[1:0] +  (s_x_offset[1]&r_bank_status[1]))   ;
     assign sim_raddr[9 : 0] = (s_cfsm_full_connect_cnn & r_raddr_vld_d1) ? (raddr + 1'b1) : (s_y_offset*8 + r_cnt_rec_rdata + wraddr_start + (s_x_offset[0] ? pic_size*8 : 'b0))  ;
 `else
+    wire    s_x_offset_ad_pad   ;
+    assign  s_x_offset_ad_pad = s_x_offset + padding    ;
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
             raddr <= 'b0    ;
@@ -576,10 +578,10 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
         if (!SYS_RST) begin
             r_reg_rst <= 'b0  ;
         end else begin
-            if (( (s_pic_x_specific > (pic_size-1)) || (s_y_offset > (pic_size-1)) )&r_raddr_vld_d1) begin//include pic_y<0 or pic_y>pic_size-1
-                r_reg_rst <= 1'b1  ;
-            end else if (r_raddr_vld_d1) begin
+            if (( (s_pic_x_specific < pic_size) & (s_pic_y_specific < pic_size) )&r_raddr_vld_d1) begin//include pic_y<0 or pic_y>pic_size-1
                 r_reg_rst <= 1'b0  ;
+            end else if (r_raddr_vld_d1) begin
+                r_reg_rst <= 1'b1  ;
             end
         end
     end

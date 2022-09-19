@@ -202,7 +202,7 @@ end
 //===========================================
 // description: the x , y update when opu read one matrix out
 wire [7 : 0]line_num    ;//one line has how many matrix
-assign line_num = padding ? ((pic_size-2)*2+2) : ((pic_size-2)*2)   ;
+assign line_num = padding ? ((pic_size-2+padding*2)*2) : ((pic_size-2)*2)   ;
 initial begin
     forever begin
         @(posedge (matrix_done))begin
@@ -285,9 +285,9 @@ end
 always @(posedge sys_clk) begin
     if (s_opu_1152_vld & r_opu_1152_rdy)begin
         if(standar_opu_1152 == s_opu_1152)begin
-        //    $display("picture picture of axis is (%d , %d) in %d bit right!!!",x,y,bit);
+            $display("picture picture of axis is (%d , %d) in %d bit right!!!",x,y,bit);
         end else begin
-        //    $display("picture picture of axis is (%d , %d) in %d bit wrong!!!",x,y,bit);
+            $display("picture picture of axis is (%d , %d) in %d bit wrong!!!",x,y,bit);
         end
     end
 end
