@@ -15,7 +15,7 @@
 // -FHEADER ==================================================
 module mux_ctrl_6_1 (
     input   SYS_CLK ,
-    input   SYS_RST ,
+    input   SYS_NRST ,
     input   [3:0]mode_i ,
     input   ctrl_update_i,
     input   ctrl_reset_i,
@@ -34,8 +34,8 @@ module mux_ctrl_6_1 (
     assign s_mode           = mode_i            ;
     assign ctrl_reset       = ctrl_reset_i      ;
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_reg2opu_ctrl_type     <= 'b0  ;
         end else begin
             if (ctrl_reset)begin

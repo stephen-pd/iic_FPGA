@@ -77,14 +77,48 @@ module top #(
     //===========================================
     // description: output preprocess
     reg             r_opu_1152_vld  ;
+    wire            s_opu_1152_vld  ;
+    wire            s_opu_rdy_inside    ;
 
     reg             r_wready        ;//sram ready for write
     reg             r_sram2reg_rdy  ;//sram ready for pass to reg_array
 
     assign WREADY       = r_wready  ;
     assign SRAM2REG_RDY = r_sram2reg_rdy  ;
-    assign OPU_1152_VLD = r_opu_1152_vld  ;  
-        
+    assign OPU_1152_VLD = s_opu_1152_vld  ;  
+
+    reg [7:0] r_cnt_s_reg2opu_ctrl_bit_eq7  ;
+    wire s_line_update  ;
+    wire                s_reg2opu_ctrl_bit_eq7  ;
+    always @(posedge SYS_CLK or negedge SYS_RST) begin
+        if (!SYS_RST)begin
+            r_cnt_s_reg2opu_ctrl_bit_eq7 <= 'b0 ;
+        end else begin
+            if (s_line_update)begin
+                r_cnt_s_reg2opu_ctrl_bit_eq7    <= 'b0  ;
+            end else if (s_reg2opu_ctrl_bit_eq7)begin
+                r_cnt_s_reg2opu_ctrl_bit_eq7 <= r_cnt_s_reg2opu_ctrl_bit_eq7 + 1'b1 ;
+            end
+        end
+    end
+    assign s_line_update = s_reg2opu_ctrl_bit_eq7 & (r_cnt_s_reg2opu_ctrl_bit_eq7 == (s_pic_size + 2*s_padding - 4'd3) - 1'b1);
+
+    reg     [3   : 0]   r_cnt_opu_rdy   ;
+    always @(posedge SYS_CLK or negedge SYS_RST) begin
+        if (!SYS_RST)begin
+            r_cnt_opu_rdy   <= 'b0  ;
+        end else begin
+            if (s_line_update)begin
+                r_cnt_opu_rdy   <= 'b0  ;
+            end else if ((r_opu_1152_vld & s_opu_1152_rdy)||(r_opu_1152_vld&s_opu_rdy_inside)) begin
+                r_cnt_opu_rdy   <= r_cnt_opu_rdy + 1'b1 ;
+            end
+        end
+    end
+    assign s_opu_rdy_inside = s_mode[2] ? (r_cnt_opu_rdy > 4'd7) : 1'b0 ;
+    assign s_opu_1152_vld   = r_opu_1152_vld & (~s_opu_rdy_inside)        ;
+    
+
     
     
     reg [1151 : 0]reg_array[7:0]    ;//reg array
@@ -146,7 +180,7 @@ module top #(
     // description: count hsync signal
     wire s_cnt_hsync_eq_2line       ;
     wire s_two_bank_full            ;//cnt_hsync == 3
-    wire s_one_bank_full            ;//cnt_hsync > 3 & cnt_hsync==2line
+    wire s_w1bank_done            ;//cnt_hsync > 3 & cnt_hsync==2line
     wire s_cnt_hsync_eq_N           ;//cnt_hsync == N + padding
 
     always @(posedge SYS_CLK or negedge SYS_RST) begin//count hsync data to sram, include the padding situation 
@@ -160,8 +194,8 @@ module top #(
 
     assign s_cnt_hsync_eq_2line = r_cnt_hsync[0] & s_data_hsync       ;//bank write change 
     
-    assign s_two_bank_full = (r_cnt_hsync == 8'd3) & s_data_hsync          ;
-    assign s_one_bank_full = (r_cnt_hsync > 8'd3) & s_cnt_hsync_eq_2line ;
+    assign s_two_bank_full = (r_cnt_hsync == 8'd4)  ;//write 4 line including padding done
+    assign s_w1bank_done = (r_cnt_hsync[0] == 1'b0) ;//r_cnt_hsync be added 2
 
     assign s_cnt_hsync_eq_N = (r_cnt_hsync == s_pic_size -1 + s_padding) & s_data_hsync  ;
 
@@ -171,7 +205,7 @@ module top #(
     //******(write bank 0 1 )**** **********(write bank 2)***********           *******(write bank 1)********
     //                            ************(read bank 0 1 to register)****** ********(read bank 2 to register)*****
     assign  s_wready_up =   ((&r_sram2reg_rdy_temp)&s_reg_array_empty) || (s_data_sop)  ;//add condition s_reg_array_empty for in the same with wen change
-    assign  s_wready_dw =   s_one_bank_full || s_cnt_hsync_eq_N ;//one_bank_full is write 2 line to sram ok,add cnt_hsync_eq_N, for when input over,wready down
+    assign  s_wready_dw =   s_w1bank_done || s_cnt_hsync_eq_N ;//one_bank_full is write 2 line to sram ok,add cnt_hsync_eq_N, for when input over,wready down
     always @(posedge SYS_CLK or negedge SYS_RST) begin
         if (!SYS_RST) begin
             r_wready    <= 1'b0 ; 
@@ -197,7 +231,7 @@ module top #(
             r_sram2reg_rdy_temp = 'b0   ;
         end else begin
             if (s_sram2reg_rdy_up)  r_sram2reg_rdy_temp    = 0  ;//down immediately
-            if (s_one_bank_full)    r_sram2reg_rdy_temp[0] = 1  ;
+            if (s_w1bank_done)    r_sram2reg_rdy_temp[0] = 1  ;
             if (s_r2bank_done)      r_sram2reg_rdy_temp[1] = 1  ;
         end
     end
@@ -334,7 +368,7 @@ module top #(
         .RDATA_VLD      (s_rdata_vld),
         .num_rdata_i    (s_num_raddr),
 
-        .OPU_1152_RDY   (s_opu_1152_rdy),//input for opu compute ok
+        .OPU_1152_RDY   (s_opu_1152_rdy || (r_opu_1152_vld&s_opu_rdy_inside)),//input for opu compute ok
 
         .rec_rdata      (s_rec_rdata),
 
@@ -346,7 +380,7 @@ module top #(
         if (!SYS_RST)begin
             r_opu_1152_vld  <= 'b0  ;
         end else begin
-            if (r_opu_1152_vld & s_opu_1152_rdy)begin
+            if ((r_opu_1152_vld & s_opu_1152_rdy)||(r_opu_1152_vld&s_opu_rdy_inside))begin
                 r_opu_1152_vld <= 'b0   ;
             end else if(~s_reg_array_empty)begin
                 r_opu_1152_vld <= 1'b1  ;
@@ -381,7 +415,7 @@ module top #(
 //===========================================
 // description: count the number of opu_vld&opu_rdy, for mux out ctrl
     reg     [2      :0] r_reg2opu_ctrl_bit      ;
-    wire                s_reg2opu_ctrl_bit_eq7  ;
+
 
     wire    [DW*9-1 :0] s_reg_array_bit         ;
   //  wire    [DW*9-1 :0] OPU_1152                ;
@@ -392,12 +426,12 @@ module top #(
         if (!SYS_RST) begin
             r_reg2opu_ctrl_bit  <= 'b0  ;
         end else begin
-            if (s_opu_1152_rdy & r_opu_1152_vld) begin
+            if ((s_opu_1152_rdy & r_opu_1152_vld)||(r_opu_1152_vld&s_opu_rdy_inside)) begin
                 r_reg2opu_ctrl_bit  <= r_reg2opu_ctrl_bit + 1   ;
             end
         end
     end
-    assign s_reg2opu_ctrl_bit_eq7 = s_opu_1152_rdy & r_opu_1152_vld & (r_reg2opu_ctrl_bit == 7) ;
+    assign s_reg2opu_ctrl_bit_eq7 = ((s_opu_1152_rdy & r_opu_1152_vld)||(r_opu_1152_vld&s_opu_rdy_inside)) & (r_reg2opu_ctrl_bit == 7) ;
 
 
 //===========================================
@@ -410,6 +444,8 @@ module top #(
         .mode_i         (s_mode)   ,
         .ctrl_update_i  (s_reg2opu_ctrl_bit_eq7),
         .ctrl_reset_i   (s_sram2reg_rdy_dw),//when update line ,ctrl mux6_1 should be reset
+        .pic_size       (s_pic_size),
+        .padding        (s_padding),
 
         .ctrl_mux_6_1   (s_ctrl_mux_6_1)
     );

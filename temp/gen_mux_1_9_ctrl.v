@@ -17,7 +17,7 @@ module gen_mux_1_9_ctrl #(
     parameters
 ) (
    input    SYS_CLK ;
-   input    SYS_RST ;
+   input    SYS_NRST ;
    input    
 
    output   [3:0]CTRL_REGNUM_SEL    ;

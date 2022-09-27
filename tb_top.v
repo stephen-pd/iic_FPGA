@@ -8,7 +8,7 @@ module tb_top #(
 );
 
 reg             sys_clk     ;
-reg             sys_rst     ;
+reg             SYS_NRST     ;
 reg [dw-1 :0]   data        ;
 reg [7    :0]   bitsel      ;
 reg [7    :0]   cnt         ;
@@ -69,7 +69,7 @@ wire            s_opu_vld_nclk;//5 period of opu_vld eq 5'b11111
 
     top U_top (
     .SYS_CLK    (sys_clk    ),
-    .SYS_RST    (sys_rst  ),
+    .SYS_NRST    (SYS_NRST  ),
 
     .DATA       (data       ),
     .DATA_VLD   (data_vld   ),
@@ -153,7 +153,7 @@ end
 integer     i   ;
 integer     j   ;
 initial begin
-    padding = 1             ;
+    padding = 0             ;
     x       = 0-padding     ;
     y       = 0-padding     ;
 
@@ -169,11 +169,11 @@ initial begin
 
     r_wraddr_start  = 0         ;//start_wraddr
     r_pic_size      = pic_size  ;//pic_size
-    mode            = 4'b0001   ;//mode0
+    mode            = 4'b0100   ;//mode0
 
-    sys_rst     = 0         ;
-    repeat(20) @(posedge sys_clk)   ;//sys_rst
-    sys_rst     = 1         ;
+    SYS_NRST     = 0         ;
+    repeat(20) @(posedge sys_clk)   ;//SYS_NRST
+    SYS_NRST     = 1         ;
 
     for(i=0 ; i<pic_size ; i=i+1)begin//simulate the picture data
         for(j=0 ; j<pic_size ; j=j+1)begin
@@ -186,7 +186,7 @@ end
 // description: when opu rdy&vld , means opu read 1bit of matrix done
 
 initial begin
-    @(posedge sys_rst)  ;
+    @(posedge SYS_NRST)  ;
     forever begin
         @(negedge (s_opu_1152_vld & r_opu_1152_rdy))begin
             bit <= bit + 1  ;
@@ -201,8 +201,17 @@ end
 
 //===========================================
 // description: the x , y update when opu read one matrix out
-wire [7 : 0]line_num    ;//one line has how many matrix
-assign line_num = padding ? ((pic_size-2+padding*2)*2) : ((pic_size-2)*2)   ;
+reg [7 : 0]line_num    ;//one line has how many matrix
+//assign line_num = padding ? ((pic_size-2+padding*2)*2) : ((pic_size-2)*2)   ;
+always @(*) begin
+    if (mode[0])begin
+        line_num = padding ? ((pic_size-2+padding*2)*2) : ((pic_size-2)*2)   ;
+    end else if(mode[1])begin
+        line_num = padding ? (pic_size) : (pic_size - 2'd2) ;
+    end else if (mode[2])begin
+        line_num = padding ? (pic_size/2'd2 ) : (pic_size/2'd2 - 1'b1)  ;
+    end
+end
 initial begin
     forever begin
         @(posedge (matrix_done))begin
@@ -235,6 +244,8 @@ initial begin
                 end else begin
                     y       <= y+2'd2                       ;
                 end
+            end else if (mode[3])begin
+
             end
             
         end
@@ -243,7 +254,7 @@ end
 //===========================================
 // description: x , y update the matrix 3x3
 // initial begin
-//     @(posedge sys_rst)              ;
+//     @(posedge SYS_NRST)              ;
 
 //     forever begin
 //         @(posedge matrix_done)begin
@@ -251,16 +262,40 @@ end
 //         end
 //     end
 // end
-assign  matrix0 = ((x < r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0                        ;
-assign  matrix1 = ((x+8'd1< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0               ;
-assign  matrix2 = ((x+8'd2< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0               ;
-assign  matrix3 = ((x < r_pic_size)&(y+8'd1 < r_pic_size)) ? picture[y+8'd1 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0               ;
-assign  matrix4 = ((x+8'd1< r_pic_size)&(y+2'd1 < r_pic_size)) ? picture[y+2'd1 ][temp_pic_sub_x4*8'd8 +:8] : 'b0               ;
-assign  matrix5 = ((x+8'd2< r_pic_size)&(y+2'd1< r_pic_size)) ? picture[y+2'd1 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0       ;
-assign  matrix6 = ((x < r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0          ;
-assign  matrix7 = ((x+8'd1< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0 ;
-assign  matrix8 = ((x+8'd2< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0 ;
-//===========================================
+always @(*) begin
+    if (mode[0]||mode[1]||mode[2])begin
+        matrix0 = ((x < r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0                        ;
+        matrix1 = ((x+8'd1< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0               ;
+        matrix2 = ((x+8'd2< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0               ;
+        matrix3 = ((x < r_pic_size)&(y+8'd1 < r_pic_size)) ? picture[y+8'd1 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0               ;
+        matrix4 = ((x+8'd1< r_pic_size)&(y+2'd1 < r_pic_size)) ? picture[y+2'd1 ][temp_pic_sub_x4*8'd8 +:8] : 'b0               ;
+        matrix5 = ((x+8'd2< r_pic_size)&(y+2'd1< r_pic_size)) ? picture[y+2'd1 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0       ;
+        matrix6 = ((x < r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0          ;
+        matrix7 = ((x+8'd1< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0 ;
+        matrix8 = ((x+8'd2< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0 ;
+    end else if (mdoe[3])begin
+        matrix0 = (cnt >= 8'd0) ?  8'd0 : 'b0   ;
+        matrix1 = (cnt >= 8'd1) ?  8'd1 : 'b0   ;
+        matrix2 = (cnt >= 8'd2) ?  8'd2 : 'b0   ;
+        matrix3 = (cnt >= 8'd3) ?  8'd3 : 'b0   ;
+        matrix4 = (cnt >= 8'd4) ?  8'd4 : 'b0   ;
+        matrix5 = (cnt >= 8'd5) ?  8'd5 : 'b0   ;
+        matrix6 = (cnt >= 8'd6) ?  8'd6 : 'b0   ;
+        matrix7 = (cnt >= 8'd7) ?  8'd7 : 'b0   ;
+        matrix8 = (cnt >= 8'd8) ?  8'd8 : 'b0   ;
+    end
+      
+end
+// assign  matrix0 = ((x < r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0                        ;
+// assign  matrix1 = ((x+8'd1< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0               ;
+// assign  matrix2 = ((x+8'd2< r_pic_size)&(y < r_pic_size)) ? picture[y  ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0               ;
+// assign  matrix3 = ((x < r_pic_size)&(y+8'd1 < r_pic_size)) ? picture[y+8'd1 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0               ;
+// assign  matrix4 = ((x+8'd1< r_pic_size)&(y+2'd1 < r_pic_size)) ? picture[y+2'd1 ][temp_pic_sub_x4*8'd8 +:8] : 'b0               ;
+// assign  matrix5 = ((x+8'd2< r_pic_size)&(y+2'd1< r_pic_size)) ? picture[y+2'd1 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0       ;
+// assign  matrix6 = ((x < r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x)*8'd8 +:8] : 'b0          ;
+// assign  matrix7 = ((x+8'd1< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd1)*8'd8 +:8] : 'b0 ;
+// assign  matrix8 = ((x+8'd2< r_pic_size)&(y+2'd2 < r_pic_size)) ? picture[temp_y_ad_2 ][(r_pic_size-8'd1-x-8'd2)*8'd8 +:8] : 'b0 ;
+// //===========================================
 // description: matrix 3x3  update standar_opu_1152
 assign standar_opu_1152 = {{128{matrix0[bit]}}  ,{128{matrix1[bit]}} ,{128{matrix2[bit]}}
                        ,   {128{matrix3[bit]}}  ,{128{matrix4[bit]}} ,{128{matrix5[bit]}}
@@ -278,22 +313,37 @@ end
 // description: generate data_sop , data ，data_hsync
 initial begin
     
-    @(posedge sys_rst)  ;
+    @(posedge SYS_NRST)  ;
     repeat(5) @(posedge sys_clk)  ;
     data_sop = 1         ;
     @(posedge sys_clk)   ;   
     data_sop= 0          ;
-    
-    repeat(pic_size*pic_size)begin
-        GEN_PACK(cnt);
-        if (cnt%pic_size == (pic_size - 1))begin//data_hsync
-            data_hsync = 1      ;
-            @(posedge sys_clk)  ;
-            data_hsync = 0      ;
-        end
-        repeat(10)  @(posedge sys_clk);
-        cnt = cnt + 1;
+
+
+    repeat(100)begin
+        @(posedge sys_clk);
     end
+    
+    if (mode[0]||mode[1]||mode[2])begin
+        repeat(pic_size*pic_size)begin
+            GEN_PACK(cnt);
+            if (cnt%pic_size == (pic_size - 1))begin//data_hsync
+                data_hsync = 1      ;
+                @(posedge sys_clk)  ;
+                data_hsync = 0      ;
+            end
+            repeat(10)  @(posedge sys_clk);
+            cnt = cnt + 1;
+        end 
+    end else if (mode[3])begin//in full-connetced mode ,just read pic_size number of package
+        repeat(pic_size)begin
+            GEN_PACK(cnt) ;
+            repeat(10) @(posedge sys_clk)   ;
+            cnt = cnt + 1   ;
+        end
+        
+    end
+    
 
     repeat(100000) @(posedge sys_clk)  ;
     $stop                           ;
@@ -390,7 +440,7 @@ initial begin
     repeat(2000) begin
         @(posedge s_opu_1152_vld)begin
        // wait (s_opu_1152_vld)begin
-            repeat(20)begin
+            repeat(100)begin
                 @(posedge sys_clk)      ;
             end
             @(posedge sys_clk)      ;

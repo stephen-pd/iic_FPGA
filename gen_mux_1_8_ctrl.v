@@ -15,7 +15,7 @@
 // -FHEADER ==================================================
 module gen_mux_1_8_ctrl (
     input   SYS_CLK ,
-    input   SYS_RST ,
+    input   SYS_NRST ,
     // input   TWO_BANK_FULL   ,
     // input   ONE_BANK_FULL   ,
     input   gen_raddr_i         ,
@@ -26,8 +26,8 @@ module gen_mux_1_8_ctrl (
 );
 
     reg [2:0]r_ctrl_bit_sel ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_ctrl_bit_sel <= 'b0 ;
         end else begin
             if (GEN_RADDR_START)begin//can not judge by TWO_BANK_FULL,it is for write,but ctrl_bit_sel is for read 

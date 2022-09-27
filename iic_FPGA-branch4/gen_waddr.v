@@ -18,7 +18,7 @@ module gen_waddr #(
    // parameter DW = 128
 ) (
     input           SYS_CLK     ,
-    input           SYS_RST     ,
+    input           SYS_NRST     ,
   //  input [DW-1:0]DATA  ,
     input           DATA_SOP    ,
   //  input           DATA_HSYNC  ,
@@ -44,8 +44,8 @@ module gen_waddr #(
 
     assign WADDR = r_waddr      ;
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//waddr[11:10] sel bank , 00 sel bank0, 01 sel bank1, 10 sel bank2
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//waddr[11:10] sel bank , 00 sel bank0, 01 sel bank1, 10 sel bank2
+        if (!SYS_NRST) begin
             r_waddr[AW+1 -: 2]  <= 'b0;
         end else begin
             if (((r_waddr[AW+1 -: 2] == 2'b10)&WBANK_UPDATE) || DATA_SOP) begin//data sop keep next input is bank0 start
@@ -56,8 +56,8 @@ module gen_waddr #(
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//waddr[9:0],addr in a bank
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//waddr[9:0],addr in a bank
+        if (!SYS_NRST) begin
             r_waddr[AW-1 : 0] <= WRADDR_START ;
         end else begin
             if (DATA_SOP) begin

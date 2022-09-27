@@ -31,7 +31,7 @@ module wsram_ctrl #(
     input MODE[3:0],//[0]three direction mode ,[1]line mode stride=1 , [2]line mode stride=2 , [3]full-connected 
     
     input SYS_CLK,
-    input SYS_RST,
+    input SYS_NRST,
 
     input 
 
@@ -65,7 +65,7 @@ module wsram_ctrl #(
     localparam FSM_WRSRAM   = 4'b1000   ;
 
     always @(posedge SYS_CLK ) begin//count hsync data to sram, include the padding situation 
-        if (!SYS_RST) r_cnt_hsync_wsram <= 'b0;
+        if (!SYS_NRST) r_cnt_hsync_wsram <= 'b0;
         else begin
             if (data_sop)        r_cnt_hsync_wsram <= {5'b0 , padding}          ;
             else if (data_hsync) r_cnt_hsync_wsram <= r_cnt_hsync_wsram + 1'b1  ;
@@ -75,7 +75,7 @@ module wsram_ctrl #(
     
 
     always @(posedge SYS_CLK) begin//waddr[9:0] in a bank
-        if (!SYS_RST) r_ctrl2sram_waddr[AW-1 : 0] <= data_start_wraddr  ;
+        if (!SYS_NRST) r_ctrl2sram_waddr[AW-1 : 0] <= data_start_wraddr  ;
         else begin
             if ((s_ctrl2sram_waddr_eq_end&MODE[3]) || (s_cnt_hsync_wsram_eq_2line&(!MODE[3])))begin
                 r_ctrl2sram_waddr[AW-1 : 0]     <= data_start_wraddr    ;
@@ -86,8 +86,8 @@ module wsram_ctrl #(
     end
     assign s_ctrl2sram_waddr_eq_end  = (r_ctrl2sram_waddr[AW-1 : 0] == (1 << AW)-1 ) & data_valid ;
 
-    always @(posedge SYS_CLK or posedge SYS_RST) begin//waddr[11:0] sel bank , 00 sel bank0, 01 sel bank1, 10 sel bank2
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or posedge SYS_NRST) begin//waddr[11:0] sel bank , 00 sel bank0, 01 sel bank1, 10 sel bank2
+        if (!SYS_NRST) begin
             r_ctrl2sram_waddr[AW+1 -: 2]  <= 'b0;
         end else begin
             if ((r_ctrl2sram_waddr[AW+1 -: 2] == 2'b10)&s_cnt_hsync_wsram_eq_2line) begin
@@ -103,7 +103,7 @@ module wsram_ctrl #(
     assign s_wsram_2bank        = (r_cnt_hsync_wsram == 4 -1)&data_hsync    ;
 
     always @(posedge SYS_CLK) begin
-        if (!SYS_RST) begin
+        if (!SYS_NRST) begin
             fsm_sram_cstate <= FSM_IDLE ;
         end else begin
             fsm_sram_cstate <= fsm_sram_nstate  ;
@@ -165,8 +165,8 @@ module wsram_ctrl #(
 
     assign {CEN2 , CEN1 , CEN0} = CEN  ;
     assign {WEN2 , WEN1 , WEN0} = WEN  ;
-    always @(posedge SYS_CLK or posedge SYS_RST ) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or posedge SYS_NRST ) begin
+        if (!SYS_NRST) begin
             CEN <= 'b0  ;
             WEN <= 'b0  ;
         end else begin

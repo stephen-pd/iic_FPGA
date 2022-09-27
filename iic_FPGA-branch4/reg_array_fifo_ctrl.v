@@ -1,6 +1,6 @@
 module reg_array_fifo_ctrl(
     input   SYS_CLK ,
-    input   SYS_RST ,
+    input   SYS_NRST ,
 
   //  input   [DW-1 :0]   RDATA           ,
   //  input   [2    :0]   CTRL_BIT_SEL    ,
@@ -61,8 +61,8 @@ module reg_array_fifo_ctrl(
     reg [3:0]   rptr                    ;//read point
     reg [3:0]   wptr                    ;//write point
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//write point
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//write point
+        if (!SYS_NRST) begin
             wptr    <= 'b0  ;
         end else begin
             if (s_cnt_rdata_rec_eqsend & (~s_full)) begin
@@ -71,8 +71,8 @@ module reg_array_fifo_ctrl(
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//read point
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//read point
+        if (!SYS_NRST) begin
             rptr    <= 'b0  ;
         end else begin
             if ( (~s_empty) & OPU_1152_RDY) begin
@@ -87,8 +87,8 @@ module reg_array_fifo_ctrl(
     // description: count the rec data 9 or 3
     reg [3:0]   r_cnt_raddr_rec         ;//count reg_array receive the data
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//reg_array receive signal
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//reg_array receive signal
+        if (!SYS_NRST) begin
             r_cnt_raddr_rec <= 'b0  ;
         end else begin
             if (s_cnt_rdata_rec_eqsend) begin

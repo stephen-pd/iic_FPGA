@@ -18,7 +18,7 @@ module gen_raddr #(
     parameter AW = 10    
 ) (
     input           SYS_CLK                     ,
-    input           SYS_RST                     ,
+    input           SYS_NRST                     ,
     input           gen_raddr_hsync_i           ,//when gen_raddr_sop later , one bank full ,start to gen raddr of four lines 
     input           gen_raddr_sop_i             ,//when bank0&1 full ,start to gen raddr of four lines
 
@@ -169,8 +169,8 @@ module gen_raddr #(
     // description: count rec_rdata ,when count eq 7, rec_matrix up ,else down
     wire s_rec_matrix        ;
     
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST)begin
             r_cnt_rec_rdata <= 'b0  ;
         end else begin
             if (s_rec_matrix)begin
@@ -187,7 +187,7 @@ module gen_raddr #(
     
 
     always @(posedge SYS_CLK) begin
-        if (!SYS_RST) begin
+        if (!SYS_NRST) begin
             fsm_rsram_cstate <= FSM_IDLE_CNN      ;
         end else begin
             fsm_rsram_cstate <= fsm_rsram_nstate  ;
@@ -284,8 +284,8 @@ module gen_raddr #(
 
     //===========================================
     // description: count the rec matrix , when eq N/2N , start state change
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//count the rec_matrix
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//count the rec_matrix
+        if (!SYS_NRST) begin
             r_cnt_matrix <= 'b0;
         end else begin
            // if (gen_raddr_hsync|| gen_raddr_sop || s_cnt_matrix_eq2N) begin//maybe no need FULL signal.//s_cnt_matrix_eq2N is for receive 1 line , gen_raddr_hsync is for start a new line
@@ -314,8 +314,8 @@ module gen_raddr #(
 
     assign  pic_x   = pic_x_temp[1]     ;
     assign  pic_y   = pic_y_temp[8:1]   ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             pic_x_temp <= 'b0            ;
             pic_y_temp <= 'b0            ;
         end else begin
@@ -349,8 +349,8 @@ module gen_raddr #(
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_x_offset <= 0             ;
             r_y_offset <= 0             ;
         end else begin
@@ -399,8 +399,8 @@ localparam  FSM_CHK_ADDR    = 5'b00100      ;
 localparam  FSM_GEN_ADDR    = 5'b01000      ;
 localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             fsm_cstate_addr <= FSM_IDLE_ADDR    ;
         end else begin
             fsm_cstate_addr <= fsm_nstate_addr  ;
@@ -456,8 +456,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 
 //===========================================
 // description:generate counter for serial raddr number , contain two counter and one vld signal
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_cnt_raddr_L <= 'b0    ;
         end else begin
             if (s_cnt_raddr_L_eq3) begin
@@ -469,8 +469,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
     end
     assign s_cnt_raddr_L_eq3 = (r_cnt_raddr_L == 2'b10) ;
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_cnt_raddr_H <= 'b0    ;
         end else begin
             if (s_raddr_vld_dw) begin
@@ -486,8 +486,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
     assign s_raddr_vld_up = s_cfsm_req_addr     ;
     assign s_raddr_vld_dw = {r_cnt_raddr_H ,r_cnt_raddr_L} == ( (s_cfsm_full_cnn||s_cfsm_full_connect_cnn) ? 4'b1010 : 4'b0010 )      ;
     
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST)begin
             r_raddr_vld <= 'b0;
         end else begin
             if (s_raddr_vld_up) begin
@@ -503,8 +503,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 
 //===========================================
 // description: generate raddr signal
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_bank_status <= 3'b000 ;
         end else begin
             if (gen_raddr_sop) begin
@@ -528,8 +528,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 `else
     wire    s_x_offset_ad_pad   ;
     assign  s_x_offset_ad_pad = s_x_offset + padding    ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             raddr <= 'b0    ;
         end else begin
             if (s_cfsm_full_connect_cnn & r_raddr_vld_d1)begin
@@ -548,8 +548,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 
 //===========================================
 // description: generate register_array reset signal
-    // always @(posedge SYS_CLK or negedge SYS_RST) begin
-    //     if (!SYS_RST) begin
+    // always @(posedge SYS_CLK or negedge SYS_NRST) begin
+    //     if (!SYS_NRST) begin
     //         r_reg_rst <= 'b0  ;
     //     end else begin
     //         if ( (r_cnt_rline == 4)&(s_x_offset == 'b0)  ||  (r_cnt_rline == pic_size)&(s_x_offset == 3) || (r_y_offset>(pic_size-1)) || (r_y_offset<0) ) begin
@@ -560,8 +560,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
     //     end
     // end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST)begin
             r_raddr_vld_d1 <= 'b0   ;
             r_raddr_vld_d2 <= 'b0   ;
 
@@ -574,8 +574,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_reg_rst <= 'b0  ;
         end else begin
             if (( (s_pic_x_specific < pic_size) & (s_pic_y_specific < pic_size) )&r_raddr_vld_d1) begin//include pic_y<0 or pic_y>pic_size-1
@@ -586,8 +586,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//count the number of hsync being read in sram
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//count the number of hsync being read in sram
+        if (!SYS_NRST) begin
             r_cnt_gen_raddr_hsync <= 'b0  ;
         end else begin
             if (gen_raddr_sop) begin
@@ -601,8 +601,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
 //===========================================
 // description: for ctrl_mux_1_9 siganl
 `ifdef REG_SHFT
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//lut change when state change
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//lut change when state change
+        if (!SYS_NRST) begin
             lut[0]  <= 'b0  ;
             lut[1]  <= 'b0  ;
             lut[2]  <= 'b0  ;
@@ -613,8 +613,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
         end
 
 `else
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//lut change when state change
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//lut change when state change
+        if (!SYS_NRST) begin
             lut[0]  <= 12'h012  ;
             lut[1]  <= 12'h345  ;
             lut[2]  <= 12'h678  ;
@@ -658,8 +658,8 @@ localparam  FSM_WAIT_ADDR   = 5'b10000      ;
             default : lut_out = lut_row[11 : 8] ;
         endcase
     end
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             lut_x   <= 'b0  ;
             lut_y   <= 'b0  ;
         end else begin

@@ -2,7 +2,7 @@ module rsram_ctrl (
     input genaddr_start,
     input bank_ok,
     input SYS_CLK,
-    input SYS_RST,
+    input SYS_NRST,
 
     input PIC_SIZE,
 
@@ -15,7 +15,7 @@ module rsram_ctrl (
 reg r_banksel[1:0];//from 00 to 10, 00 select bank1、2; 01 select bank2、3；10 select bank3、1
 wire s_banksel_eq_10;
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         r_banksel <= 'b0;
     end else begin
         if (rsram_start || (s_banksel_eq_10)) begin
@@ -31,7 +31,7 @@ reg r_bitsel[2:0];//from 000 to 111, sel which bit register
 wire s_genaddr_sop;//when cnt rece == 9 or 3
 wire s_matrix_end;
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         r_bitsel <= 'b0;
     end else begin
         if (s_genaddr_sop) begin
@@ -52,7 +52,7 @@ localparam P_DOW2_CNN = 7'b0100000;
 localparam P_DONE_CNN = 7'b1000000;
 
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         r_FSM_STATE <= P_IDLE_CNN;
     end else begin
         case (r_FSM_STATE)
@@ -122,7 +122,7 @@ wire s_cnn_state_end;//for fsm state to r_DONE_CNN
 signed  reg [7:0]X;
 signed  reg [7:0]Y;//the coordinate of cnn in picture
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         X <= 'b0;
         Y <= 'b0; 
     end else begin
@@ -160,7 +160,7 @@ reg [7:0] r_cnt_matrix;//count matrix for line, in mode1/3 0-2N-1 , in mode2 0-N
 wire s_cnn_state_end;//the signal for FSM to done
 
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         r_cnt_matrix <= 'b0;
     end else begin
         if (genaddr_start || bank_ok) begin
@@ -190,7 +190,7 @@ wire s_cnt_genaddr_valid_down;
 wire s_cnt_genaddr_L_eq_10;
 wire s_cnt_genaddr_M_eq_10;
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST)begin
+    if (!SYS_NRST)begin
         r_cnt_genaddr_valid <= 'b0;
     end else begin
         if (s_cnt_genaddr_valid_up) begin
@@ -203,7 +203,7 @@ end
 assign s_cnt_genaddr_valid_up = genaddr_start || bank_ok || s_genaddr_sop;
 assign s_cnt_genaddr_valid_down =  (r_cnt_genaddr == s_num_addr);
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         r_cnt_genaddr <= 'b0;
     end else begin
         if (s_cnt_genaddr_valid)begin
@@ -225,7 +225,7 @@ assign s_cnt_genaddr_valid_down = (r_cnt_genaddr == s_num_addr - 1);
 
 reg rsram_addr[10:0];
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         rsram_addr <= 'b0;
     end else begin
         if (s_cnt_genaddr_valid & s_FULL_CNN) begin//when generate 9 addr
@@ -252,7 +252,7 @@ end
 
 reg [2:0] reg_stack [11:0];//define 9x3 register stack, each 3 bit 
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST)begin
+    if (!SYS_NRST)begin
         reg_stack[0] <= 'b0;
         reg_stack[1] <= 'b0;
         reg_stack[2] <= 'b0;
@@ -295,7 +295,7 @@ end
 
 reg [3:0]sram2regarry_addr_o;
 always @(posedge SYS_CLK) begin
-    if (!SYS_RST) begin
+    if (!SYS_NRST) begin
         sram2regarry_addr_o <= 'b0;
     end else begin
         if (r_cnt_genaddr_valid) begin

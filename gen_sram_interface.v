@@ -4,7 +4,7 @@ module gen_sram_interface #(
     parameter DW = 128
 ) (
     input               SYS_CLK         ,
-    input               SYS_RST         ,
+    input               SYS_NRST         ,
     input   [3    :0]   mode_i          ,
     input               r2wrsram_i      ,//sram start in state of write and read both
     input               wrsram_bank_change_i  ,//sram state change in write and read both
@@ -107,8 +107,8 @@ module gen_sram_interface #(
 
     assign sram_status_o    = fsm_sram_cstate           ;
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST)begin
             rdata_vld   <= 'b0                          ;
         end else begin
             rdata_vld   <= raddr_vld                    ;
@@ -119,8 +119,8 @@ module gen_sram_interface #(
 
 //===========================================
 // description: fsm state for 3 banks state in read or write
-always @(posedge SYS_CLK or negedge SYS_RST) begin
-    if (!SYS_RST) begin
+always @(posedge SYS_CLK or negedge SYS_NRST) begin
+    if (!SYS_NRST) begin
         fsm_sram_cstate <= FSM_IDLE ;
     end else begin
         fsm_sram_cstate <= fsm_sram_nstate  ;
@@ -167,8 +167,8 @@ always @(*) begin
     endcase
 end
 
-// always @(posedge SYS_CLK or negedge SYS_RST) begin//count the number of line being read in sram
-//     if (!SYS_RST) begin
+// always @(posedge SYS_CLK or negedge SYS_NRST) begin//count the number of line being read in sram
+//     if (!SYS_NRST) begin
 //         r_cnt_rline <= 'b0  ;
 //     end else begin
 //         if (r2wrsram) begin
@@ -182,8 +182,8 @@ end
 
 //===========================================
 // description: generate sram interface for 3 sram
-always @(posedge SYS_CLK or negedge SYS_RST ) begin
-    if (!SYS_RST) begin
+always @(posedge SYS_CLK or negedge SYS_NRST ) begin
+    if (!SYS_NRST) begin
         CEN <= 'b0  ;
         WEN <= 'b0  ;
     end else begin
@@ -254,8 +254,8 @@ always @(*)begin
     end
 end
 
-always @(posedge SYS_CLK or negedge SYS_RST ) begin
-    if (!SYS_RST) begin
+always @(posedge SYS_CLK or negedge SYS_NRST ) begin
+    if (!SYS_NRST) begin
         rbank_sel <= 'b0    ;
     end else begin
         rbank_sel <= raddr[11:10]   ;

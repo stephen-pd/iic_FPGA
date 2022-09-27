@@ -8,7 +8,7 @@ module tb_top #(
 );
 
 reg             sys_clk     ;
-reg             sys_rst     ;
+reg             SYS_NRST     ;
 reg [dw-1 :0]   data        ;
 reg [7    :0]   bitsel      ;
 reg [7    :0]   cnt         ;
@@ -69,7 +69,7 @@ wire            s_opu_vld_nclk;//5 period of opu_vld eq 5'b11111
 
     top U_top (
     .SYS_CLK    (sys_clk    ),
-    .SYS_RST    (sys_rst  ),
+    .SYS_NRST    (SYS_NRST  ),
 
     .DATA       (data       ),
     .DATA_VLD   (data_vld   ),
@@ -171,9 +171,9 @@ initial begin
     r_pic_size      = pic_size  ;//pic_size
     mode            = 4'b0001   ;//mode0
 
-    sys_rst     = 0         ;
-    repeat(20) @(posedge sys_clk)   ;//sys_rst
-    sys_rst     = 1         ;
+    SYS_NRST     = 0         ;
+    repeat(20) @(posedge sys_clk)   ;//SYS_NRST
+    SYS_NRST     = 1         ;
 
     for(i=0 ; i<pic_size ; i=i+1)begin//simulate the picture data
         for(j=0 ; j<pic_size ; j=j+1)begin
@@ -186,7 +186,7 @@ end
 // description: when opu rdy&vld , means opu read 1bit of matrix done
 
 initial begin
-    @(posedge sys_rst)  ;
+    @(posedge SYS_NRST)  ;
     forever begin
         @(negedge (s_opu_1152_vld & r_opu_1152_rdy))begin
             bit <= bit + 1  ;
@@ -224,7 +224,7 @@ end
 //===========================================
 // description: x , y update the matrix 3x3
 // initial begin
-//     @(posedge sys_rst)              ;
+//     @(posedge SYS_NRST)              ;
 
 //     forever begin
 //         @(posedge matrix_done)begin
@@ -259,7 +259,7 @@ end
 // description: generate data_sop , data ，data_hsync
 initial begin
     
-    @(posedge sys_rst)  ;
+    @(posedge SYS_NRST)  ;
     repeat(5) @(posedge sys_clk)  ;
     data_sop = 1         ;
     @(posedge sys_clk)   ;   

@@ -20,7 +20,7 @@ module top #(
     parameter   DW  = 128
 ) (
     input   SYS_CLK ,
-    input   SYS_RST ,
+    input   SYS_NRST ,
 
     input   [DW-1 : 0]  DATA        ,
     input               DATA_VLD    ,
@@ -149,8 +149,8 @@ module top #(
     wire s_one_bank_full            ;//cnt_hsync > 3 & cnt_hsync==2line
     wire s_cnt_hsync_eq_N           ;//cnt_hsync == N + padding
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//count hsync data to sram, include the padding situation 
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//count hsync data to sram, include the padding situation 
+        if (!SYS_NRST) begin
             r_cnt_hsync <= 'b0;
         end else begin
             if (s_data_sop)        r_cnt_hsync <= {7'b0 , s_padding}    ;
@@ -172,8 +172,8 @@ module top #(
     //                            ************(read bank 0 1 to register)****** ********(read bank 2 to register)*****
     assign  s_wready_up =   ((&r_sram2reg_rdy_temp)&s_reg_array_empty) || (s_data_sop)  ;//add condition s_reg_array_empty for in the same with wen change
     assign  s_wready_dw =   s_one_bank_full || s_cnt_hsync_eq_N ;//one_bank_full is write 2 line to sram ok,add cnt_hsync_eq_N, for when input over,wready down
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_wready    <= 1'b0 ; 
         end else begin
             if (s_wready_up) begin
@@ -192,8 +192,8 @@ module top #(
 
     assign s_sram2reg_rdy_up    = (s_sram_status==4'b1000) ? ((&r_sram2reg_rdy_temp)&s_reg_array_empty) : (s_reg_array_empty&(r_sram2reg_rdy_temp[1]&(r_cnt_r2bank_done < ((s_pic_size>>1)+s_padding-1'b1))))  ;//add the condition of reg array is empty              
     assign s_sram2reg_rdy_dw    = s_sram2reg_vld & SRAM2REG_RDY               ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_sram2reg_rdy_temp = 'b0   ;
         end else begin
             if (s_sram2reg_rdy_up)  r_sram2reg_rdy_temp    = 0  ;//down immediately
@@ -202,8 +202,8 @@ module top #(
         end
     end
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_sram2reg_rdy  <= 'b0  ;
         end else begin
             if (s_sram2reg_rdy_up)      r_sram2reg_rdy <= 1'b1  ;
@@ -217,7 +217,7 @@ module top #(
 
     gen_waddr U_gen_waddr (
         .SYS_CLK            (SYS_CLK    ),
-        .SYS_RST            (SYS_RST    ),
+        .SYS_NRST            (SYS_NRST    ),
         .DATA_SOP           (s_data_sop   ),
         .DATA_VLD           (s_data_vld   ),
         .WREADY             (r_wready   ),
@@ -236,7 +236,7 @@ module top #(
 
     gen_raddr U_gen_raddr (
         .SYS_CLK            (SYS_CLK    ),
-        .SYS_RST            (SYS_RST    ),
+        .SYS_NRST            (SYS_NRST    ),
         .gen_raddr_hsync_i  (s_sram2reg_vld),
         .gen_raddr_sop_i    (s_two_bank_full),
         .rec_rdata_i          (s_rec_rdata),
@@ -266,8 +266,8 @@ module top #(
 // description: now is for sram in or out
 // //======================================================================================
     
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//generate signal for sram state from read sram to idle sram
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//generate signal for sram state from read sram to idle sram
+        if (!SYS_NRST)begin
             r_cnt_r2bank_done   <= 'b0  ;
         end else begin
             if (s_data_sop)begin
@@ -281,7 +281,7 @@ module top #(
     
     gen_sram_interface U_gen_sram_interface (
         .SYS_CLK        (SYS_CLK),
-        .SYS_RST        (SYS_RST),
+        .SYS_NRST        (SYS_NRST),
         .mode_i           (s_mode),
         .r2wrsram_i  (s_two_bank_full),
         .wrsram_bank_change_i  (s_sram2reg_vld),
@@ -317,8 +317,8 @@ module top #(
     reg  r_rdata_rst            ;
     assign s_ctrl_regnum_sel_d1 = r_ctrl_regnum_sel_d1  ;
     assign s_rdata_rst          = r_rdata_rst           ;
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_ctrl_regnum_sel_d1    <= 'b0  ;
             r_rdata_rst             <= 'b0  ;
         end else begin
@@ -329,7 +329,7 @@ module top #(
 
     reg_array_fifo_ctrl U_reg_array_fifo_ctrl (
         .SYS_CLK        (SYS_CLK),
-        .SYS_RST        (SYS_RST),
+        .SYS_NRST        (SYS_NRST),
 
         .RDATA_VLD      (s_rdata_vld),
         .num_rdata_i    (s_num_raddr),
@@ -342,8 +342,8 @@ module top #(
         .reg_array_empty(s_reg_array_empty)
     );
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin//when opu rdy up ,opu vld down immidaitely
-        if (!SYS_RST)begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin//when opu rdy up ,opu vld down immidaitely
+        if (!SYS_NRST)begin
             r_opu_1152_vld  <= 'b0  ;
         end else begin
             if (r_opu_1152_vld & s_opu_1152_rdy)begin
@@ -356,8 +356,8 @@ module top #(
 //===========================================
 // description: sram readout data to reg_array
     
-      always @(posedge SYS_CLK or negedge SYS_RST) begin//write data to fifo 
-        if (!SYS_RST) begin
+      always @(posedge SYS_CLK or negedge SYS_NRST) begin//write data to fifo 
+        if (!SYS_NRST) begin
             reg_array[0]    <= 'b0  ;
             reg_array[1]    <= 'b0  ;
             reg_array[2]    <= 'b0  ;
@@ -388,8 +388,8 @@ module top #(
    // reg     [DW*9-1 :0] reg_array[7:0]          ;//reg_array
 
 
-    always @(posedge SYS_CLK or negedge SYS_RST) begin
-        if (!SYS_RST) begin
+    always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        if (!SYS_NRST) begin
             r_reg2opu_ctrl_bit  <= 'b0  ;
         end else begin
             if (s_opu_1152_rdy & r_opu_1152_vld) begin
@@ -406,7 +406,7 @@ module top #(
 
     mux_ctrl_6_1 U_mux_ctrl_6_1 (
         .SYS_CLK        (SYS_CLK),
-        .SYS_RST        (SYS_RST),
+        .SYS_NRST        (SYS_NRST),
         .mode_i         (s_mode)   ,
         .ctrl_update_i  (s_reg2opu_ctrl_bit_eq7),
         .ctrl_reset_i   (s_sram2reg_rdy_dw),//when update line ,ctrl mux6_1 should be reset
