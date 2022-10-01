@@ -46,7 +46,7 @@ module gen_raddr #(
 );
     reg [5:0]r_cnt_matrix       ;//count the read_one_matrix 
     reg [7:0]fsm_rsram_cstate   ;
-    reg [7:0]fsm_rsram_nstate   ;
+    reg [7:0]fsm_rsram_nstate   ;  
 
     reg [1:0]r_cnt_raddr_L      ;
     reg [1:0]r_cnt_raddr_H      ;//raddr counter L(low 2 bit),H(high 2 bit)

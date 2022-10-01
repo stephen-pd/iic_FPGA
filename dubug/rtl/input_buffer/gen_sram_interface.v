@@ -126,7 +126,7 @@ module gen_sram_interface #(
     end
 
     assign s_rsram_start = (r_cnt_wrsram_start == ((pic_size>>1) - 'd2 + padding))&wrsram_start   ;
-    assign s_rsram2idle  = (r_cnt_wrsram_start == ((pic_size>>1) - 'd1 + padding))&wrsram_start   ;//for prevent the situation of write slow, read fast
+    assign s_rsram2idle  = (r_cnt_wrsram_start == ((pic_size>>1) - 'd1 + padding))&rsram_done   ;//for prevent the situation of write slow, read fast
 
 //===========================================
 // description: fsm state for 3 banks state in read or write
@@ -189,72 +189,78 @@ end
 
 //===========================================
 // description: generate sram interface for 3 sram
+reg   [2:0]sram_enable ;
 always @(posedge SYS_CLK or negedge SYS_NRST ) begin
     if (!SYS_NRST) begin
-        CEN <= 'b0  ;
+        sram_enable <= 'b0  ;
         WEN <= 'b0  ;
     end else begin
         if (wsram_start) begin//start write
-            CEN <= 3'b001   ;
+            sram_enable <= 3'b001   ;
             WEN <= 3'b001   ;//write bank 0
         end else if (cnn_mode & wrsram_start & s_cfsm_wsram) begin//start write and read in cnn
-            CEN <= 3'b111   ;
+            sram_enable <= 3'b111   ;
             WEN <= 3'b100   ;//write bank2 ,read bank 0,1
         end else if (full_connect_mode & wrsram_start & s_cfsm_wsram) begin//start read in full_connet
-            CEN <= 3'b001   ;
+            sram_enable <= 3'b001   ;
             WEN <= 3'b000   ;//start read bank 0
         end else if (s_cfsm_wsram & wsram_2line || (~s_cfsm_wsram & wrsram_start)) begin
-            CEN <= {CEN[1] ,CEN[0] ,CEN[2]} ;
+            sram_enable <= {sram_enable[1] ,sram_enable[0] ,sram_enable[2]} ;
             WEN <= {WEN[1] ,WEN[0] ,WEN[2]} ;
         end  
     end
 end
 
 always @(*)begin
-    if (CEN[0] & WEN[0] & (waddr[AW+1 -: 2]==2'b00) & wdata_vld) begin//add vld write
+    if (sram_enable[0] & WEN[0] & (waddr[AW+1 -: 2]==2'b00) & wdata_vld) begin//add vld write
         A0      = waddr[AW-1 : 0]        ;
         DIN0    = wdata                  ;
+        CEN[0]  = 1'b1                   ;
     
-    end else if (CEN[0] & !WEN[0] & (raddr[AW+1 -: 2]==2'b00) & raddr_vld)begin//add vld read 
+    end else if (sram_enable[0] & !WEN[0] & (raddr[AW+1 -: 2]==2'b00) & raddr_vld)begin//add vld read 
         A0      = raddr[AW-1 : 0]        ;
         DIN0    = 'b0                    ;
-    
+        CEN[0]  = 1'b1                   ;
     end else begin
         A0      = 'b0                    ;
         DIN0    = 'B0                    ;
+        CEN[0]  = 1'b0                   ;
     
     end
 end
 
 always @(*)begin
-    if (CEN[1] & WEN[1] & (waddr[AW+1 -: 2]==2'b01) & wdata_vld) begin
+    if (sram_enable[1] & WEN[1] & (waddr[AW+1 -: 2]==2'b01) & wdata_vld) begin
         A1      = waddr[AW-1 : 0]        ;
         DIN1    = wdata                  ;
+        CEN[1]  = 1'b1                   ;
       
-    end else if (CEN[1] & !WEN[1] & (raddr[AW+1 -: 2]==2'b01) & raddr_vld)begin
+    end else if (sram_enable[1] & !WEN[1] & (raddr[AW+1 -: 2]==2'b01) & raddr_vld)begin
         A1      = raddr[AW-1 : 0]        ;
         DIN1    = 'b0                    ;
+        CEN[1]  = 1'b1                   ;
       
     end else begin
         A1      = 'b0                    ;
         DIN1    = 'b0                    ;
+        CEN[1]  = 1'b0                   ;
       
     end
 end
 
 always @(*)begin
-    if (CEN[2] & WEN[2] & (waddr[AW+1 -: 2]==2'b10) & wdata_vld) begin
+    if (sram_enable[2] & WEN[2] & (waddr[AW+1 -: 2]==2'b10) & wdata_vld) begin
         A2      = waddr[AW-1 : 0]        ;
         DIN2    = wdata                  ;
-      
-    end else if (CEN[2] & !WEN[2] & (raddr[AW+1 -: 2]==2'b10))begin
+        CEN[2]  = 1'b1                   ;
+    end else if (sram_enable[2] & !WEN[2] & (raddr[AW+1 -: 2]==2'b10))begin
         A2      = raddr[AW-1 : 0]        ;
         DIN2    = 'b0                    ;
-      
+        CEN[2]  = 1'b1                   ;
     end else begin
         A2      = 'b0                    ;
         DIN2    = 'b0                    ;
-      
+        CEN[2]  = 1'b0                   ;
     end
 end
 

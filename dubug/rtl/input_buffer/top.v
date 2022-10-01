@@ -153,6 +153,27 @@ module top #(
     assign SRAM_STATUS = s_sram_status  ;
     
 
+    `ifdef SIM
+    reg [2:0]   r_cnt_bit   ;
+        always @(posedge SYS_CLK or negedge SYS_NRST) begin
+            if (!SYS_NRST)begin
+                r_cnt_bit <= 'b0    ;
+            end else if (DATA_VLD&WREADY)begin
+                $display("128bit put in is %h",DATA);//多一个vld因为隔了一个周期
+                r_cnt_bit   <= r_cnt_bit + 1'b1 ;
+                if (r_cnt_bit=='d7) $display("/n");
+            end
+        end
+        // always @(posedge SYS_CLK or negedge SYS_NRST) begin
+        //     if (!SYS_NRST)begin
+        //         r_cnt_bit <= 'b0    ;
+        //     end else if (OPU_1152_VLD&OPU_1152_RDY)begin
+        //         $display("1152bit output in is %h",OPU_1152);//多一个vld因为隔了一个周期
+        //         r_cnt_bit   <= r_cnt_bit + 1'b1 ;
+        //         if (r_cnt_bit=='d7) $display("/n");
+        //     end
+        // end
+    `endif 
 
    
 // //======================================================================================
@@ -292,7 +313,7 @@ module top #(
         .SYS_NRST               (SYS_NRST       ),
 
         .data_sop_i             (s_data_sop     ),
-        .data_vld_i             (s_data_vld     ),
+        .data_vld_i             (s_data_vld&WREADY     ),
         .wready_i               (r_wready       ),
         .wraddr_start_i         (s_wraddr_start ),
 
@@ -313,7 +334,7 @@ module top #(
 
         .data_sop_i         (s_data_sop     ),
 
-        .gen_raddr_start_i  (s_sram2reg_vld ),//in cnn s_mode or full_connected s_mode
+        .gen_raddr_start_i  (s_sram2reg_vld&r_sram2reg_rdy ),//in cnn s_mode or full_connected s_mode
         .gen_raddr_end_o    (s_gen_raddr_end),
 
         .reg2sram_rec_done_i(s_rec_rdata    ),
@@ -384,7 +405,7 @@ module top #(
         .wsram_start_i      (s_data_sop ),
 
         .wdata_i            (s_data     ),
-        .wdata_vld_i        (s_data_vld ),
+        .wdata_vld_i        (s_data_vld&WREADY ),
         .waddr_i            (s_waddr    ), 
 
         .raddr_i            (s_raddr    ),

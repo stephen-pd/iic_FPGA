@@ -153,7 +153,7 @@ module apb_input_buffer_port #(
             program_cfg_picsize <= apb_pwdata_s[12:5];
             program_cfg_progress_value <= apb_pwdata_s[$clog2(MAX_COUNTER_VALUE)+12:13];
             program_cfg_counter_value <= apb_pwdata_s[2*$clog2(MAX_COUNTER_VALUE)+12:$clog2(MAX_COUNTER_VALUE)+13];
-            program_cfg_id <= apb_pwdata_s[$clog2(PROGRAM_TABLE_ENTRY)+2*$clog2(MAX_COUNTER_VALUE)+13:2*$clog2(MAX_COUNTER_VALUE)+13];
+            program_cfg_id <= apb_pwdata_s[$clog2(PROGRAM_TABLE_ENTRY)+2*$clog2(MAX_COUNTER_VALUE)+12:2*$clog2(MAX_COUNTER_VALUE)+13];
             program_cfg_vld <= 1'b1;
         end
         else begin

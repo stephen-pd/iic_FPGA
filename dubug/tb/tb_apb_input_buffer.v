@@ -57,6 +57,9 @@ module tb_apb_input_buffer;
     reg                                         program_cfg_padding;
 
     reg     [31:0]      opu_din     [35:0];
+    reg     [1151:0]    opu_1152          ;
+    reg     [7:0]       pix               ;
+    reg     [7:0]       pix_all_channel[127:0]   ;
 
     integer i;
     genvar j;
@@ -98,7 +101,14 @@ module tb_apb_input_buffer;
         $dumpvars(0, tb_apb_input_buffer);
     end
 
+    integer fid_command;
+    integer fid_picture;
+    integer fid_opuout;
     initial begin
+        fid_command=$fopen("C:/Users/stephenpd/Documents/MATLAB/input_buffer/command.txt","w");
+        fid_opuout =$fopen("C:/Users/stephenpd/Documents/MATLAB/input_buffer/opu1152out.txt","w");
+        fid_picture=$fopen("C:/Users/stephenpd/Documents/MATLAB/input_buffer/picture_verilog.txt","w");
+
         cfg_done = 0;
         wait(rst_n);
         token_cfg_id = 'h0;
@@ -112,31 +122,38 @@ module tb_apb_input_buffer;
         program_cfg_counter_value = -2;
         program_cfg_progress_value = -3;
         program_cfg_picsize = 8;
-        program_cfg_mode = 1;
+        program_cfg_mode = 4'b0001;
         program_cfg_padding = 1;
         APB_WRITE(CFG_PROGRAM_ENTRY, {program_cfg_id, program_cfg_counter_value, program_cfg_progress_value, program_cfg_picsize, program_cfg_mode, program_cfg_padding});
         cfg_done = 1;
     end
 
+    
     initial begin
         wait(cfg_done);
-        repeat(2) begin
+        repeat(1) begin
             //first elements is tokenid , second is col_size, third is index of col_size
+            //C:/Users/stephenpd/Documents/MATLAB/input_buffer/
+            
             WRITE_COLUMN(0, 8, 0);  // col 1
             WRITE_COLUMN(0, 8, 1);  // col 2
-            WRITE_COLUMN(0, 8, 2);  // col 3
-            READ_COLUMN(8);
+            WRITE_COLUMN(0, 8, 2);  // col 3  
+            READ_COLUMN(16);
     
             WRITE_COLUMN(0, 8, 3);  // col 4
             WRITE_COLUMN(0, 8, 4);  // col 5
-            READ_COLUMN(8);
+            READ_COLUMN(16);
     
             WRITE_COLUMN(0, 8, 5);  // col 6
             WRITE_COLUMN(0, 8, 6);  // col 7
-            READ_COLUMN(8);
+            READ_COLUMN(16);
     
             WRITE_COLUMN(0, 8, 7);  // col 8
-            READ_COLUMN(8);
+            READ_COLUMN(16);
+
+            $fclose(fid_picture);
+            $fclose(fid_opuout);
+            $fclose(fid_command);
         end
 
         $stop();
@@ -151,13 +168,26 @@ module tb_apb_input_buffer;
         input   [$clog2(MAX_COUNTER_VALUE)-1:0] col_size,
         input   [7:0]                           din
     );
+    integer pix_index;
+    integer channel_index;
     begin
         col_offset = 0;
         repeat(col_size) begin
             APB_WRITE(PACKET_TOKEN_ID, token_id);
+            pix_index  = 0;
             repeat(CHANNEL) begin
-                APB_WRITE(PACKET_WORD_DATA, din+col_offset);
+                pix = $random   ;
+                APB_WRITE(PACKET_WORD_DATA, pix);
+                pix_all_channel[pix_index] = pix;
+                pix_index = pix_index+1;
             end
+            //write one pix of all channel to .txt
+            for (channel_index=0 ;channel_index<128 ;channel_index=channel_index+1)begin
+                $fwrite(fid_picture,"%d ",pix_all_channel[channel_index]);
+                $fwrite(fid_command,"%h ",pix_all_channel[channel_index]);
+            end
+            $fwrite(fid_picture,"\n\n");
+            $fwrite(fid_command,"\n\n");
             col_offset = col_offset + 1;
             repeat(32) @(posedge clk);
         end
@@ -167,6 +197,7 @@ module tb_apb_input_buffer;
     task READ_COLUMN(
         input   [$clog2(MAX_COUNTER_VALUE)-1:0] col_size
     );
+        integer i;
         repeat(col_size) begin
             APB_READ(OPU_INPUT_STATUS);
             while(!prdata[0]) begin
@@ -182,7 +213,18 @@ module tb_apb_input_buffer;
                     rd_1152_offset = rd_1152_offset + 1;
                 end
                 APB_WRITE(OPU_INPUT_RELEASE, 1);
+                for (i=0 ; i<36; i=i+1)begin
+                    opu_1152[i*32 +:32] = opu_din[i];
+                end
+                
+                for (i=0 ; i<1152; i=i+1)begin
+                    $fwrite(fid_opuout,"%b ",opu_1152[1151-i]);
+                end
+                $fwrite(fid_opuout, "\n");
+                
+
             end
+            $fwrite(fid_opuout,"\n\n\n");
         end
         
     endtask
@@ -201,6 +243,11 @@ module tb_apb_input_buffer;
         psel = 1;
         @(posedge clk);
         penable = 1;
+        if (cfg_done==1'b0)begin
+            $fwrite(fid_command,"%8h",paddr);
+            $fwrite(fid_command,"%8h",pwdata);
+            $fwrite(fid_command,"/n");
+        end
         wait(pready);
         @(posedge clk);
         penable = 0;

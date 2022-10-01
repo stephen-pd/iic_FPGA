@@ -1,0 +1,57 @@
+ 
+****************************************
+Report : area
+Design : top
+Version: O-2018.06-SP4
+Date   : Wed Sep  7 12:11:50 2022
+****************************************
+
+Library(s) Used:
+
+    xmc9t_55ef_tt_1p2v_25c (File: /TOOLS/PDK/XMC/XMC_HP/xmc55ef_hp/std_lib_20181213/hvt_std_lib_9t_20181213/lib/xmc9t_55ef_tt_1p2v_25c.db)
+    sram_1024_32_SS_1d08V_-40C (File: /data/stephenpd/dc_synopsy/pd/sram_db/sram_1024_32_SS_1d08V_-40C.db)
+
+Number of ports:                        15877
+Number of nets:                         85404
+Number of cells:                        70308
+Number of combinational cells:          60919
+Number of sequential cells:              9364
+Number of macros/black boxes:              12
+Number of buf/inv:                      30348
+Number of references:                      36
+
+Combinational area:             135068.400609
+Buf/Inv area:                    43206.841510
+Noncombinational area:           79275.600435
+Macro/Black Box area:           352916.601562
+Net Interconnect area:               0.000000
+
+Total cell area:                567260.602606
+Total area:                     567260.602606
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area                Local cell area
+                                  --------------------  ------------------------------------ 
+Hierarchical cell                 Absolute     Percent  Combi-       Noncombi-   Black-
+                                  Total        Total    national     national    boxes        Design
+--------------------------------  -----------  -------  -----------  ----------  -----------  --------------------------
+top                               567260.6026    100.0     290.5200     78.1200       0.0000  top
+U_gen_mux_1_8ctrl                     46.4400      0.0      20.5200     25.9200       0.0000  top_gen_mux_1_8_ctrl_0
+U_gen_raddr                         2407.6800      0.4    1566.0000    735.1200       0.0000  top_gen_raddr_0
+U_gen_raddr/add_197                   32.4000      0.0      32.4000      0.0000       0.0000  top_gen_raddr_0_DW01_inc_2
+U_gen_raddr/add_227                   32.4000      0.0      32.4000      0.0000       0.0000  top_gen_raddr_0_DW01_inc_1
+U_gen_raddr/add_334                   41.7600      0.0      41.7600      0.0000       0.0000  top_gen_raddr_0_DW01_inc_0
+U_gen_sram_interface              355273.8816     62.6    2233.4400    123.8400  352916.6016  top_gen_sram_interface_0
+U_gen_waddr                          392.7600      0.1     170.2800    125.6400       0.0000  top_gen_waddr_0
+U_gen_waddr/add_64                    55.0800      0.0      55.0800      0.0000       0.0000  top_gen_waddr_0_DW01_add_0
+U_gen_waddr/add_68                    41.7600      0.0      41.7600      0.0000       0.0000  top_gen_waddr_0_DW01_inc_0
+U_reg_array_fifo                  208738.8010     36.8   91899.0003  78186.9604       0.0000  top_reg_array_fifo_0
+U_reg_array_fifo/U_mux_6_1         16461.7202      2.9   16461.7202      0.0000       0.0000  top_mux_6_1_0
+U_reg_array_fifo/U_mux_8_1         22191.1201      3.9   22191.1201      0.0000       0.0000  top_mux_8_1_0
+add_100_S2                            32.4000      0.0      32.4000      0.0000       0.0000  top_DW01_inc_0
+--------------------------------  -----------  -------  -----------  ----------  -----------  --------------------------
+Total                                                   135068.4006  79275.6004  352916.6016
+
+1

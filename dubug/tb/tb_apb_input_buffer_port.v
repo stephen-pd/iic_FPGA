@@ -149,7 +149,7 @@ module tb_apb_input_buffer_port;
         program_cfg_counter_value = -2;
         program_cfg_progress_value = -3;
         program_cfg_picsize = 8;
-        program_cfg_mode = 1;
+        program_cfg_mode = 4'b0010;
         program_cfg_padding = 1;
         APB_WRITE(CFG_PROGRAM_ENTRY, {program_cfg_id, program_cfg_counter_value, program_cfg_progress_value, program_cfg_picsize, program_cfg_mode, program_cfg_padding});
         cfg_done = 1;
@@ -162,16 +162,21 @@ module tb_apb_input_buffer_port;
             WRITE_COLUMN(0, 8, 1);  // col 2
             WRITE_COLUMN(0, 8, 2);  // col 3
             READ_COLUMN(8);
+            READ_COLUMN(8);
+            $stop;
     
             WRITE_COLUMN(0, 8, 3);  // col 4
             WRITE_COLUMN(0, 8, 4);  // col 5
+            READ_COLUMN(8);
             READ_COLUMN(8);
     
             WRITE_COLUMN(0, 8, 5);  // col 6
             WRITE_COLUMN(0, 8, 6);  // col 7
             READ_COLUMN(8);
+            READ_COLUMN(8);
     
             WRITE_COLUMN(0, 8, 7);  // col 8
+            READ_COLUMN(8);
             READ_COLUMN(8);
         end
 

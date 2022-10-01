@@ -9,23 +9,23 @@ z2
 cModel Technology
 Z0 dC:/Users/stephenpd/Desktop/sr/dubug
 T_opt
-!s110 1664257895
-VP=K75R;ecBj@gG[Of7X0?3
+!s110 1664452487
+Vm:1GAd>`2Zn[XeUU<MGL_0
 04 19 4 work tb_apb_input_buffer fast 0
-=1-8c8caad2e3ab-63328f66-3b2-121c
+=1-8c8caad2e3ab-63358787-30a-550
 o-quiet -auto_acc_if_foreign -work work +acc
 Z1 tCvgOpt 0
 n@_opt
 OL;O;10.5;63
 R0
 vapb_input_buffer_port
-Z2 !s110 1664258135
+Z2 !s110 1664452674
 !i10b 1
-!s100 NC;a:mbFe^eLjQS6g8m^S2
-I[:gT>X2T@18;B2C0KZRDB1
+!s100 8^QHYVj`?;YM]XzTIzWd40
+I2G6lgMAlEf@egnDZ=@5Zk0
 Z3 VDg1SIo80bB@j0V0VzS_@n1
 R0
-w1664172621
+w1664264705
 8./rtl/input_buffer_port/apb_input_buffer_port.v
 F./rtl/input_buffer_port/apb_input_buffer_port.v
 Z4 L0 16
@@ -33,20 +33,20 @@ Z5 OL;L;10.5;63
 r1
 !s85 0
 31
-Z6 !s108 1664258135.000000
+Z6 !s108 1664452674.000000
 Z7 !s107 ./rtl/input_buffer_port/word2bit_trans_unit.v|./rtl/input_buffer_port/token_table_crtl.v|./rtl/input_buffer_port/program_table_ctrl.v|./rtl/input_buffer_port/icb_input_buffer_top.v|./rtl/input_buffer_port/apb_input_buffer_top.v|./rtl/input_buffer_port/apb_input_buffer_port.v|
-Z8 !s90 -reportprogress|300|./rtl/input_buffer_port/apb_input_buffer_port.v|./rtl/input_buffer_port/apb_input_buffer_top.v|./rtl/input_buffer_port/icb_input_buffer_top.v|./rtl/input_buffer_port/program_table_ctrl.v|./rtl/input_buffer_port/token_table_crtl.v|./rtl/input_buffer_port/word2bit_trans_unit.v|
+Z8 !s90 -reportprogress|300|-work|work|./rtl/input_buffer_port/apb_input_buffer_port.v|./rtl/input_buffer_port/apb_input_buffer_top.v|./rtl/input_buffer_port/icb_input_buffer_top.v|./rtl/input_buffer_port/program_table_ctrl.v|./rtl/input_buffer_port/token_table_crtl.v|./rtl/input_buffer_port/word2bit_trans_unit.v|
 !i113 0
-Z9 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z9 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
 R1
 vapb_input_buffer_top
 R2
 !i10b 1
-!s100 :^<mQ=m_JQ^IfWG_IzlFn0
-I^VGU`LnH4?CG=e`Ta:O>^2
+!s100 kniRn=MQnNeoIAN9X4kzi1
+Id2_1cNYk<>@OLJ]UgW98h0
 R3
 R0
-w1664257779
+w1664264904
 8./rtl/input_buffer_port/apb_input_buffer_top.v
 F./rtl/input_buffer_port/apb_input_buffer_top.v
 R4
@@ -61,10 +61,10 @@ R8
 R9
 R1
 vapb_timer
-R2
+Z10 !s110 1664452675
 !i10b 1
 !s100 BW2oRMl0gdiahFGPPl4?U1
-IFmdl=zQBA6ZDT=gU:01:c1
+IE`OHnaniHYU:dXSz5]Q5l1
 R3
 R0
 w1661606671
@@ -75,41 +75,41 @@ R5
 r1
 !s85 0
 31
-R6
-Z10 !s107 ./rtl/utils/timer.v|./rtl/utils/table_symbol.v|./rtl/utils/apb_timer.v|
-Z11 !s90 -reportprogress|300|./rtl/utils/apb_timer.v|./rtl/utils/table_symbol.v|./rtl/utils/timer.v|
+Z11 !s108 1664452675.000000
+Z12 !s107 ./rtl/utils/timer.v|./rtl/utils/table_symbol.v|./rtl/utils/apb_timer.v|
+Z13 !s90 -reportprogress|300|-work|work|./rtl/utils/apb_timer.v|./rtl/utils/table_symbol.v|./rtl/utils/timer.v|
 !i113 0
 R9
 R1
 vgen_raddr
-R2
+R10
 !i10b 1
-!s100 cVgClBNF0joDH1;amP]:X3
-ISIO@[hC]lVBW;@8;k9oB]3
+!s100 PBPmL:zhVZo_GQlf@=5E[0
+IJQ]VAT[JAb6dV3W:WaP570
 R3
 R0
-w1664183977
+w1664260178
 8./rtl/input_buffer/gen_raddr.v
 F./rtl/input_buffer/gen_raddr.v
-Z12 L0 17
+Z14 L0 17
 R5
 r1
 !s85 0
 31
 R6
-Z13 !s107 .\rtl\input_buffer\define.v|./rtl/input_buffer/top.v|./rtl/input_buffer/tb_top.v|./rtl/input_buffer/sync_reg.v|./rtl/input_buffer/sram_sim.v|./rtl/input_buffer/sram.v|./rtl/input_buffer/reg_array_fifo_ctrl.v|./rtl/input_buffer/mux_ctrl_8_1.v|./rtl/input_buffer/mux_ctrl_6_1.v|./rtl/input_buffer/mux_8_1.v|./rtl/input_buffer/mux_6_1.v|./rtl/input_buffer/gen_waddr.v|./rtl/input_buffer/gen_sram_interface.v|./rtl/input_buffer/gen_raddr.v|./rtl/input_buffer/define.v|
-Z14 !s90 -reportprogress|300|./rtl/input_buffer/define.v|./rtl/input_buffer/gen_raddr.v|./rtl/input_buffer/gen_sram_interface.v|./rtl/input_buffer/gen_waddr.v|./rtl/input_buffer/mux_6_1.v|./rtl/input_buffer/mux_8_1.v|./rtl/input_buffer/mux_ctrl_6_1.v|./rtl/input_buffer/mux_ctrl_8_1.v|./rtl/input_buffer/reg_array_fifo_ctrl.v|./rtl/input_buffer/sram.v|./rtl/input_buffer/sram_sim.v|./rtl/input_buffer/sync_reg.v|./rtl/input_buffer/tb_top.v|./rtl/input_buffer/top.v|
+Z15 !s107 .\rtl\input_buffer\define.v|./rtl/input_buffer/top.v|./rtl/input_buffer/tb_top.v|./rtl/input_buffer/sync_reg.v|./rtl/input_buffer/sram_sim.v|./rtl/input_buffer/sram.v|./rtl/input_buffer/reg_array_fifo_ctrl.v|./rtl/input_buffer/mux_ctrl_8_1.v|./rtl/input_buffer/mux_ctrl_6_1.v|./rtl/input_buffer/mux_8_1.v|./rtl/input_buffer/mux_6_1.v|./rtl/input_buffer/gen_waddr.v|./rtl/input_buffer/gen_sram_interface.v|./rtl/input_buffer/gen_raddr.v|./rtl/input_buffer/define.v|
+Z16 !s90 -reportprogress|300|-work|work|./rtl/input_buffer/define.v|./rtl/input_buffer/gen_raddr.v|./rtl/input_buffer/gen_sram_interface.v|./rtl/input_buffer/gen_waddr.v|./rtl/input_buffer/mux_6_1.v|./rtl/input_buffer/mux_8_1.v|./rtl/input_buffer/mux_ctrl_6_1.v|./rtl/input_buffer/mux_ctrl_8_1.v|./rtl/input_buffer/reg_array_fifo_ctrl.v|./rtl/input_buffer/sram.v|./rtl/input_buffer/sram_sim.v|./rtl/input_buffer/sync_reg.v|./rtl/input_buffer/tb_top.v|./rtl/input_buffer/top.v|
 !i113 0
 R9
 R1
 vgen_sram_interface
-R2
+R10
 !i10b 1
-!s100 SB2]7MVMlOlb=48iog_;e1
-IYBVJ:zgb^`PnElVi030NY0
+!s100 G@mfX;?QAZQ2i=8;fLX@a1
+IXzMX6IklkJRGE1AEomjBA0
 R3
 R0
-w1664178096
+w1664427835
 8./rtl/input_buffer/gen_sram_interface.v
 F./rtl/input_buffer/gen_sram_interface.v
 L0 1
@@ -118,16 +118,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vgen_waddr
-R2
+R10
 !i10b 1
 !s100 ffS4NM_;`jNPzi9LZScQN1
-Ihe`dm5`E@D4;zSfWS3UbU2
+I^Bf5:Ea>MlFSQKhhznllO3
 R3
 R0
 w1664085041
@@ -139,8 +139,8 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
@@ -148,7 +148,7 @@ vicb_input_buffer_top
 R2
 !i10b 1
 !s100 cRjB6TDH19NizK;jgV4B61
-I?>^TX^bc`A<c[oJ?OBVLW1
+IO9iRn6c?Mgj1G524HE]5_1
 R3
 R0
 w1663407694
@@ -166,13 +166,13 @@ R8
 R9
 R1
 vmux_6_1
-R2
+R10
 !i10b 1
 !s100 Dj8n]GJX;]e>ZiCR[9GI<3
-IAZ_5NLNjbS9Vf`KLh0EUE1
+IO@BJ8OQSJ3KRJgUd73FZA2
 R3
 R0
-Z15 w1663610516
+Z17 w1663610516
 8./rtl/input_buffer/mux_6_1.v
 F./rtl/input_buffer/mux_6_1.v
 R4
@@ -181,19 +181,19 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vmux_8_1
-R2
+R10
 !i10b 1
 !s100 ZnH3T6oZPaYk4MU0F0nb[1
-IIClHW`MVFAY1YZo=oj_PB1
+IfMR^R4Xe`g0_eBGWjVjUC0
 R3
 R0
-R15
+R17
 8./rtl/input_buffer/mux_8_1.v
 F./rtl/input_buffer/mux_8_1.v
 L0 1
@@ -202,16 +202,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vmux_ctrl_6_1
-R2
+R10
 !i10b 1
 !s100 H]7VKRQ0@0i^fFaYD=`IF0
-IVX;fCV4nmSb8B`g:@fBcZ1
+Io`BO6XM8]AE@]]a^JYDWO0
 R3
 R0
 w1664152216
@@ -223,16 +223,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vmux_ctrl_8_1
-R2
+R10
 !i10b 1
 !s100 RKD5OG@z@?]NOC3X7WinU1
-I>7SLnhVe1KK6HaG3ag0W;1
+I71a[l2?C^Cj:Z8>=LBolE3
 R3
 R0
 w1664134703
@@ -244,8 +244,8 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
@@ -253,10 +253,10 @@ vprogram_table_ctrl
 R2
 !i10b 1
 !s100 WgnPLee3dz[?0_>WUF_I=1
-IU2ENINZ=Ng:AF:zHV:UDB1
+ICPFRRYj_4ARzQ:<MNAC_k3
 R3
 R0
-w1664174615
+w1664264907
 8./rtl/input_buffer_port/program_table_ctrl.v
 F./rtl/input_buffer_port/program_table_ctrl.v
 R4
@@ -271,10 +271,10 @@ R8
 R9
 R1
 vreg_array_fifo_ctrl
-R2
+R10
 !i10b 1
 !s100 L;zQdg688>2YcY09Z2S<43
-IXLoY6g8CT6U4PCb]TU8^U3
+IQYBE^Q6l@fammWUYCo;ID1
 R3
 R0
 w1663930932
@@ -286,16 +286,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vsram
-R2
+R10
 !i10b 1
 !s100 UD_Z]bXYlKPL5VBnFcQ]g0
-IYLDz]Y@8<hNG^PQ_5Eeb>0
+I_OKBaQGFSF?@56@LzF`602
 R3
 R0
 w1664120771
@@ -307,19 +307,19 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vsram_sim
-R2
+R10
 !i10b 1
 !s100 QoJF8^MZ<DHXj7<MJGMWN1
-I6P^^G:N0k3ngT`GaCzic72
+IX_68Ebn@Mjk35oBlzAdMl0
 R3
 R0
-R15
+R17
 8./rtl/input_buffer/sram_sim.v
 F./rtl/input_buffer/sram_sim.v
 L0 1
@@ -328,16 +328,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vsync_reg
-R2
+R10
 !i10b 1
 !s100 VADF[e`9QkSkGbamoV<SP2
-IMRKk1gW0nI4Ub<;hR`f`j1
+I5`POekc<jE`Ozhe_bQ@fA3
 R3
 R0
 w1664124359
@@ -349,16 +349,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vtable_symbol
-R2
+R10
 !i10b 1
 !s100 UFAae1I4Azjg3b5<PK7c40
-I`z7mKUS<FBX[A_6i`O9NE2
+IUb8HLZQ6CKMDRo::cJgh51
 R3
 R0
 w1663314564
@@ -369,38 +369,38 @@ R5
 r1
 !s85 0
 31
-R6
-R10
 R11
+R12
+R13
 !i113 0
 R9
 R1
 vtb_apb_input_buffer
-R2
+R10
 !i10b 1
-!s100 VhO;CzPU=gn=Yn:N=BB<i0
-IlGG<9Xa<YT:B[0SPI]3ZA0
+!s100 SfHTmnM7`XZM^P>?lUfH53
+Iz;B7C;BFznY;ojP4@XPag2
 R3
 R0
-w1664257891
+w1664452476
 8./tb/tb_apb_input_buffer.v
 F./tb/tb_apb_input_buffer.v
-R12
+R14
 R5
 r1
 !s85 0
 31
-R6
+R11
 !s107 ./tb/tb_apb_input_buffer.v|
-!s90 -reportprogress|300|./tb/tb_apb_input_buffer.v|
+!s90 -reportprogress|300|-work|work|./tb/tb_apb_input_buffer.v|
 !i113 0
 R9
 R1
 vtb_top
-R2
+R10
 !i10b 1
 !s100 ^ZRU0^cf[=LOGOaWhV@]I3
-IWIQBba_j>FVAeP@lo4>9Z3
+IzbMS_jLVn5Z4M75[ag2K@1
 R3
 R0
 w1664183526
@@ -412,16 +412,16 @@ r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vtimer
-R2
+R10
 !i10b 1
 !s100 KKI_20[O42@@@C79:Yz;e2
-IJb=mZIJ0]8YK^T;;hQHeI1
+I0ARYC?:;l84=<IC``B0eU3
 R3
 R0
 w1661606524
@@ -432,9 +432,9 @@ R5
 r1
 !s85 0
 31
-R6
-R10
 R11
+R12
+R13
 !i113 0
 R9
 R1
@@ -442,7 +442,7 @@ vtoken_table_ctrl
 R2
 !i10b 1
 !s100 5[J0i7Y6hezd6AmVWePc`1
-IM5RN?T78f<M[heP0A7KMM1
+I<3iJ<DjSl8UdRLl`0f0Xg0
 R3
 R0
 w1664087967
@@ -460,34 +460,34 @@ R8
 R9
 R1
 vtop
-R2
+R10
 !i10b 1
-!s100 8A6<geNg<R_==?Na5f66A3
-I0kbF:S^zZe@3PfJAF4c=F1
+!s100 8ZhBJ;TLhN`I:Ka8U>9YK2
+I9fATKgP?^XzKP41lPkHmZ1
 R3
 R0
-w1664189005
+w1664431988
 8./rtl/input_buffer/top.v
 F./rtl/input_buffer/top.v
-R12
+R14
 R5
 r1
 !s85 0
 31
 R6
-R13
-R14
+R15
+R16
 !i113 0
 R9
 R1
 vword2bit_trans_unit
 R2
 !i10b 1
-!s100 BJzblmdOm5Qgj9S8VK45W2
-I0Gz^bazUjfQ?1@?[?014?0
+!s100 6S]kTVoIRnE>A6=04Pa1N3
+IgK?N1k458FoOD<A1Mb8U40
 R3
 R0
-w1663306799
+w1664443830
 8./rtl/input_buffer_port/word2bit_trans_unit.v
 F./rtl/input_buffer_port/word2bit_trans_unit.v
 R4

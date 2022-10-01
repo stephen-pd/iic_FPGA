@@ -89,7 +89,7 @@ module word2bit_trans_unit #(
                 else if(packet_received_o) begin
                     trans_buf[i] <= 8'b0;
                 end
-                else if(wr_cnt == i && wordser_data_vld_i) begin
+                else if(wr_cnt == MAX_CHANNEL_NUM - 1 - i && wordser_data_vld_i) begin
                     trans_buf[i] <= wordser_data_i;
                 end
                 else begin
