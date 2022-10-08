@@ -3,7 +3,7 @@
 // Author         : Ziheng Zhou ziheng.zhou.1999@qq.com
 // CreateDate     : 2022-09-16 14:53:41
 // LastEditors    : Ziheng Zhou ziheng.zhou.1999@qq.com
-// LastEditTime   : 2022-09-26 17:10:12
+// LastEditTime   : 2022-10-04 20:49:08
 // Description    : 
 //                  
 // 
@@ -19,8 +19,8 @@ module apb_input_buffer_top #(
     parameter MAX_CHANNEL_NUM = 128,
     parameter IB_SRAM_AW = 10,
     parameter MAX_COUNTER_VALUE = 32,
-    parameter TOKEN_TABLE_ENTRY = 32,
-    parameter PROGRAM_TABLE_ENTRY = 32
+    parameter TOKEN_TABLE_ENTRY = 4,
+    parameter PROGRAM_TABLE_ENTRY = 4
 ) (
     input   wire                                clk_i,
     input   wire                                rst_n_i,
@@ -47,6 +47,8 @@ module apb_input_buffer_top #(
     wire                                inbuf_padding;
     wire                                inbuf_cmd_vld;
     wire                                inbuf_cmd_rdy;
+    wire    [10:0]                      inbuf_regarray_row_sel;
+    wire    [7:0]                       inbuf_regarray_row_data;
 
     apb_input_buffer_port #(
         .BUS_AW(BUS_AW),
@@ -79,38 +81,40 @@ module apb_input_buffer_top #(
         .inbuf_mode_o(inbuf_mode),
         .inbuf_padding_o(inbuf_padding),
         .inbuf_cmd_vld_o(inbuf_cmd_vld),
-        .inbuf_cmd_rdy_i(inbuf_cmd_rdy)
+        .inbuf_cmd_rdy_i(inbuf_cmd_rdy),
+        .inbuf_regarray_row_sel_o(inbuf_regarray_row_sel),
+        .inbuf_regarray_row_data_i(inbuf_regarray_row_data)
     );
 
-    top #(
-        .AW(IB_SRAM_AW),
-        .DW(MAX_CHANNEL_NUM)
+    inputbuffer_top #(
+        .aw(IB_SRAM_AW),
+        .dw(MAX_CHANNEL_NUM)
     )U_input_buffer_top_0 (
         .SYS_CLK    (clk_i    ),
         .SYS_NRST    (rst_n_i  ),
 
-        .DATA       (inbuf_din       ),
-        .DATA_VLD   (inbuf_din_vld   ),
-        .DATA_HSYNC (inbuf_hsync ),
-        .DATA_SOP   (inbuf_sop   ),
+        .input_buffer_write_data       (inbuf_din       ),
+        .input_buffer_write_valid   (inbuf_din_vld   ),
+        .input_buffer_write_ready         (inbuf_din_rdy   ),
+        .input_buffer_write_hsync (inbuf_hsync ),
+        .input_buffer_write_sop   (inbuf_sop   ),
 
-        .WRADDR_START   (inbuf_start_waddr ),
+        .input_buffer_write_addr_start   (inbuf_start_waddr ),
 
-        .SRAM2REG_VLD   (inbuf_cmd_vld),
-        .SRAM2REG_RDY   (inbuf_cmd_rdy),
+        .sram2reg_valid   (inbuf_cmd_vld),
+        .sram2reg_ready   (inbuf_cmd_rdy),
 
-        .OPU_1152_RDY   (inbuf_dout_rdy),
-        .OPU_1152_VLD   (inbuf_dout_vld),
-        .PIC_SIZE       (inbuf_pic_size ),
-        .PADDING        (inbuf_padding  ),
-        .MODE           (inbuf_mode     ),
+        .opu1152_ready   (inbuf_dout_rdy),
+        .opu1152_valid   (inbuf_dout_vld),
+        .pic_size       (inbuf_pic_size ),
+        .padding        (inbuf_padding  ),
+        .mode           (inbuf_mode     ),
 
-        .WREADY         (inbuf_din_rdy   ),
+        
 
-        .OPU_1152       (inbuf_dout ),
-        .CTRL_MUX_1152_1(11'b0        ), 
-        .REG_ARRAY_ROW  (),
-        .SRAM_STATUS    ()
+        .opu1152_data       (inbuf_dout ),
+        .register_array_row_sel(inbuf_regarray_row_sel),
+        .register_array_row_data(inbuf_regarray_row_data)
     );
     
 endmodule

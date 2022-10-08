@@ -3,7 +3,7 @@
 // Author         : Ziheng Zhou ziheng.zhou.1999@qq.com
 // CreateDate     : 2022-09-15 15:43:06
 // LastEditors    : Ziheng Zhou ziheng.zhou.1999@qq.com
-// LastEditTime   : 2022-09-26 14:09:56
+// LastEditTime   : 2022-10-04 20:59:23
 // Description    : 
 //                  
 // 
@@ -51,7 +51,9 @@ module apb_input_buffer_port #(
     output  wire                                inbuf_padding_o,
 
     output  wire                                inbuf_cmd_vld_o,
-    input   wire                                inbuf_cmd_rdy_i
+    input   wire                                inbuf_cmd_rdy_i,
+    output  reg     [10:0]                      inbuf_regarray_row_sel_o,
+    input   wire    [7:0]                       inbuf_regarray_row_data_i
 );
 
     localparam CFG_TOEKN_ENTRY = 6'h00;     // W    {token_id, token_value, dst_program} 
@@ -59,8 +61,10 @@ module apb_input_buffer_port #(
     localparam RD_TOKEN_ENTRY = 6'h10;      // R
     localparam RD_PROGRAM_ENTRY = 6'h14;    // R
 
-    localparam PACKET_TOKEN_ID = 6'h20;      // W
-    localparam PACKET_WORD_DATA = 6'h24;     // W
+    localparam PACKET_TOKEN_ID = 6'h20;     // W
+    localparam PACKET_WORD_DATA = 6'h24;    // W
+    localparam REGARRAY_SEL = 6'h28;        // W
+    localparam REGARRAY_DATA = 6'h2c;       // W
     
 
     localparam OPU_INPUT_INDEX = 6'h30;     // W
@@ -167,6 +171,18 @@ module apb_input_buffer_port #(
         end
     end
 
+    // write reg array row sel
+    always @(posedge clk_i or negedge rst_n_i) begin
+        if(!rst_n_i) begin
+            inbuf_regarray_row_sel_o <= 'h0;
+        end
+        else if(apb_psel_s && apb_pwrite_s && apb_penable_s && apb_paddr_s == REGARRAY_SEL) begin
+            inbuf_regarray_row_sel_o <= apb_pwdata_s[10:0];
+        end
+        else begin
+            inbuf_regarray_row_sel_o <= inbuf_regarray_row_sel_o;
+        end
+    end
     // write wordser_data
     always @(posedge clk_i) begin
         if(apb_psel_s && apb_pwrite_s && apb_penable_s && apb_paddr_s == PACKET_WORD_DATA) begin
@@ -210,6 +226,7 @@ module apb_input_buffer_port #(
         end
         else if(apb_psel_s) begin
             case(apb_paddr_s) 
+                REGARRAY_DATA : apb_prdata_s <= {24'b0, inbuf_regarray_row_data_i};
                 OPU_INPUT_STATUS : apb_prdata_s <= {31'b0, inbuf_dout_vld_i};
                 OPU_INPUT_PAYLOAD : apb_prdata_s <= inbuf_dout32;
                 RD_TOKEN_ENTRY : begin

@@ -1,0 +1,355 @@
+m255
+K4
+z2
+!s11f MIXED_VERSIONS
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/stephenpd/Desktop/sr/dubug/rtl/input_buffer_v2/sim
+T_opt
+!s110 1665062159
+VhIREY<hQ9[aL`Di5X`O@i0
+Z1 04 18 4 work tb_inputbuffer_top fast 0
+=1-8c8caad2e3ab-633ed50e-38d-3260
+Z2 o-quiet -auto_acc_if_foreign -work work +acc
+Z3 tCvgOpt 0
+n@_opt
+Z4 OL;O;10.5;63
+T_opt1
+!s110 1664816406
+VT94zAbf^Qbd9Ob:BZQ`hF2
+R1
+=1-8c8caad2e3ab-633b1516-256-32fc
+R2
+R3
+n@_opt1
+R4
+R0
+T_opt2
+!s110 1664870104
+V`@_6XJUOeD07<5n^<a;iE0
+R1
+=1-8c8caad2e3ab-633be6d8-c6-ae4
+R2
+R3
+n@_opt2
+OL;O;2019.2;69
+R0
+vgen_raddr
+Z5 !s110 1665062155
+!i10b 1
+!s100 kk;<Rj5Zak;A[`9DU4lA@1
+In`D;8cQ1`Sc57N;WRP?i:0
+Z6 VDg1SIo80bB@j0V0VzS_@n1
+R0
+w1664860704
+8../gen_raddr.v
+F../gen_raddr.v
+L0 18
+Z7 OL;L;10.5;63
+r1
+!s85 0
+31
+Z8 !s108 1665062155.000000
+Z9 !s107 ..\define.v|../tb_inputbuffer_top.v|../sync_register.v|../sram_sim.v|../sram.v|../register_array_fifo.v|../mux_8_1_ctrl.v|../mux_8_1.v|../mux_6_1_ctrl.v|../mux_6_1.v|../inputbuffer_top.v|../inputbuffer_sram_ctrl.v|../gen_waddr.v|../gen_ready.v|../gen_raddr.v|../define.v|
+Z10 !s90 -reportprogress|300|-work|work|../define.v|../gen_raddr.v|../gen_ready.v|../gen_waddr.v|../inputbuffer_sram_ctrl.v|../inputbuffer_top.v|../mux_6_1.v|../mux_6_1_ctrl.v|../mux_8_1.v|../mux_8_1_ctrl.v|../register_array_fifo.v|../sram.v|../sram_sim.v|../sync_register.v|../tb_inputbuffer_top.v|
+!i113 0
+Z11 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R3
+vgen_ready
+R5
+!i10b 1
+!s100 =I][elNnfzXm@<2FaiJV?3
+IbCl]b<LeB[B1?kP<2:i[z2
+R6
+R0
+w1664842045
+8../gen_ready.v
+F../gen_ready.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vgen_waddr
+R5
+!i10b 1
+!s100 21HW`SlDEca]DfBXXC:M:2
+IMJ8P97faLQWiLglbJ=?jb3
+R6
+R0
+w1664856742
+8../gen_waddr.v
+F../gen_waddr.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vinputbuffer_sram_ctrl
+R5
+!i10b 1
+!s100 QSm`clKXiX>W9of_;Kbz70
+I8GL<oS5M:<2k08k;L`VmG0
+R6
+R0
+w1664841743
+8../inputbuffer_sram_ctrl.v
+F../inputbuffer_sram_ctrl.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vinputbuffer_top
+R5
+!i10b 1
+!s100 a@:EVjQkQ=aj5L4HbHhEl3
+IM:gC@na:`kT:CaRV^;:n41
+R6
+R0
+w1664841512
+8../inputbuffer_top.v
+F../inputbuffer_top.v
+L0 2
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vmux_6_1
+R5
+!i10b 1
+!s100 nO9gLE4mAKRSQ`<I]@YN?1
+I`G3j`9>:6<d[=P:kLM<Ok3
+R6
+R0
+w1664803510
+8../mux_6_1.v
+F../mux_6_1.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vmux_6_1_ctrl
+R5
+!i10b 1
+!s100 Jb<0PGe<E1JXldAif_M2C3
+IVzh=4XkWT?>LMj;:jo3m_3
+R6
+R0
+w1664803546
+8../mux_6_1_ctrl.v
+F../mux_6_1_ctrl.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vmux_8_1
+R5
+!i10b 1
+!s100 :K]lcV42O43Yn<RHI:>@O2
+IWFchU>`UXHE996d^]1P7^3
+R6
+R0
+w1664622033
+8../mux_8_1.v
+F../mux_8_1.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vmux_8_1_ctrl
+R5
+!i10b 1
+!s100 RSA_Idf]@gFXHQ]I2^A0N0
+I^hkE;]Vfd=N6Qo:;c>:jL1
+R6
+R0
+w1664620442
+8../mux_8_1_ctrl.v
+F../mux_8_1_ctrl.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vregister_array_fifo
+R5
+!i10b 1
+!s100 j6P95SlPFi7<c:kCQRkJM3
+IFFkCPCDX:E^BCS7ffn>2j2
+R6
+R0
+w1664871766
+8../register_array_fifo.v
+F../register_array_fifo.v
+L0 2
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vsram
+R5
+!i10b 1
+!s100 UD_Z]bXYlKPL5VBnFcQ]g0
+IebnHmX[RKDzMf^_:[ROWC0
+R6
+R0
+w1664776030
+8../sram.v
+F../sram.v
+L0 2
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vsram_sim
+R5
+!i10b 1
+!s100 QoJF8^MZ<DHXj7<MJGMWN1
+I^QKmRHgjJgfAgK?J:KP;l2
+R6
+R0
+w1663610516
+8../sram_sim.v
+F../sram_sim.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vsync_register
+R5
+!i10b 1
+!s100 LEFQ?;_jA3<f``BclGlzL1
+IBEFY]DLAF3>>`N7<HH<A?1
+R6
+R0
+w1664776837
+8../sync_register.v
+F../sync_register.v
+L0 1
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vtb_inputbuffer_top
+R5
+!i10b 1
+!s100 >Y2]z^`2^Jo]_Co@6ahQ?0
+IBiO6^ZmFBEdTe?gdBNcD00
+R6
+R0
+w1665061757
+8../tb_inputbuffer_top.v
+F../tb_inputbuffer_top.v
+L0 4
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 0
+R11
+R3
+vtb_top
+!s110 1664803185
+!i10b 1
+!s100 ^ZRU0^cf[=LOGOaWhV@]I3
+Im<eOjZ]nUdC<<QA]389QD2
+R6
+R0
+w1664183526
+8../../input_buffer_v1/tb_top.v
+F../../input_buffer_v1/tb_top.v
+L0 4
+R7
+r1
+!s85 0
+31
+!s108 1664803185.000000
+!s107 ..\..\input_buffer_v1\define.v|../../input_buffer_v1/tb_top.v|
+!s90 -reportprogress|300|../../input_buffer_v1/tb_top.v|
+!i113 0
+o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R3

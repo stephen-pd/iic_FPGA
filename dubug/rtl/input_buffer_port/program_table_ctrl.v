@@ -3,7 +3,7 @@
 // Author         : Ziheng Zhou ziheng.zhou.1999@qq.com
 // CreateDate     : 2022-09-22 14:20:16
 // LastEditors    : Ziheng Zhou ziheng.zhou.1999@qq.com
-// LastEditTime   : 2022-09-26 14:43:35
+// LastEditTime   : 2022-10-07 13:34:56
 // Description    : 
 //                  
 // 
@@ -73,6 +73,7 @@ module program_table_ctrl #(
     localparam BROAD_CMD = 3'h6;
 
     localparam USE_PADDING = 1'b1;
+    localparam USE_FC = 4'h8;
 
     wire                                            program_id_fire;
     wire                                            inbuf_cmd_fire;
@@ -113,11 +114,12 @@ module program_table_ctrl #(
     reg                 rd_entry_vld_d1;
     reg                 sop;     
     reg                 sop_locked;
+    reg                 sop_locked_update;
 
     assign program_id_fire = program_id_vld_i && program_id_rdy_o;
     assign inbuf_cmd_fire = inbuf_cmd_rdy_i && inbuf_cmd_vld_o;
 
-    always @(posedge clk_i or negedge rst_n_i) begin
+    always @(posedge clk_i) begin
         if(program_id_fire) begin
             current_program <= program_id_payload_i;
             current_program_trigger <= program_id_triggerd_i;
@@ -268,7 +270,7 @@ module program_table_ctrl #(
         else if(rd_entry_vld_d1) begin
             last_column <= & progress_value;    // progress_value == -1
             //first_column <= !(| progress_value);   // progress_value == 0
-            first_column <= (progress_value == 'h0);
+            first_column <= (progress_value == 'h0 || inbuf_mode == USE_FC);
         end
         else begin
             last_column <= last_column;
@@ -323,7 +325,10 @@ module program_table_ctrl #(
 
     always @(posedge clk_i) begin
         if(fsm_cstate == UPDATE && !update_value_vld_d1 && current_program_trigger) begin
-            if(program_value == 'h0 && progress_value == 'h0) begin
+            if(inbuf_mode == USE_FC) begin
+                progress_value <= progress_value_init;  //全连接仅需1次progress，但设为0将无法正确产生sop    
+            end
+            else if(program_value == 'h0 && progress_value == 'h0) begin
                 progress_value_update <= progress_value_init;
             end
             else if(program_value == 'h0) begin
@@ -371,11 +376,25 @@ module program_table_ctrl #(
         else if(progress_value == 'h0) begin
             sop_locked <= 1'b0;
         end
+        /*
+        else if(current_program_trigger && inbuf_mode == USE_FC) begin  //全连接层不滑窗，仅需1次trigger，trigger即可将sop_locked清零
+            sop_locked <= 1'b0;
+        end
+        */
         else if(inbuf_sop_o) begin
             sop_locked <= 1'b1;
         end
         else begin
             sop_locked <= sop_locked;
+        end
+    end
+
+    always @(posedge clk_i) begin
+        if(current_program_trigger && inbuf_mode == USE_FC) begin
+            sop_locked_update <= 1'b0;
+        end
+        else begin
+            sop_locked_update <= sop_locked;
         end
     end
 
@@ -419,7 +438,7 @@ module program_table_ctrl #(
     //  | program_counter | program_counter_init |progress_counter | pic_size | mode | padding |
     assign program_table_we = update_value_vld_d1 || program_cfg_vld_i;
     assign program_table_index = program_cfg_vld_i ? program_cfg_id_i : current_program;
-    assign program_table_entry_update = program_cfg_vld_i ? {sop_locked, program_cfg_counter_value_i, program_cfg_counter_value_i, program_cfg_progress_value_i, program_cfg_progress_value_i, program_cfg_picsize_i, program_cfg_mode_i, program_cfg_padding_i} : {sop_locked, program_value_update, program_value_init, progress_value_update, progress_value_init, inbuf_pic_size, inbuf_mode, inbuf_padding};
+    assign program_table_entry_update = program_cfg_vld_i ? {sop_locked, program_cfg_counter_value_i, program_cfg_counter_value_i, program_cfg_progress_value_i, program_cfg_progress_value_i, program_cfg_picsize_i, program_cfg_mode_i, program_cfg_padding_i} : {sop_locked_update, program_value_update, program_value_init, progress_value_update, progress_value_init, inbuf_pic_size, inbuf_mode, inbuf_padding};
 
 
     table_symbol #(
